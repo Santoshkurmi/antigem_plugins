@@ -56,8 +56,11 @@ def probe(path):
 class VideoReader:
     """Decodes frames of size (w, h) at the output fps, starting at trim[0], already speed-adjusted and fitted."""
 
-    def __init__(self, path, w, h, fps, trim, speed, fit, loop, key=None, focus=None):
+    def __init__(self, path, w, h, fps, trim, speed, fit, loop, key=None, focus=None, src_duration=0.0):
         self.path, self.w, self.h, self.fps, self.trim, self.speed, self.fit, self.loop = path, w, h, fps, trim, speed, fit, loop
+        end = trim[1] if trim[1] is not None else (src_duration or 0.0)
+        self.length = max(0.0, end - trim[0]) if end else 0.0  # seconds of source in use (0 = unknown)
+        self.start_off = 0.0
         self.key, self.focus = key, focus
         self.proc = None
         self.index = -1
@@ -67,7 +70,7 @@ class VideoReader:
     def _vf(self):
         f = []
         if self.trim[1] is not None:
-            f.append(f"trim=end={self.trim[1] - self.trim[0]:.3f},setpts=PTS-STARTPTS")
+            f.append(f"trim=end={max(0.04, self.trim[1] - self.trim[0] - self.start_off):.3f},setpts=PTS-STARTPTS")
         if self.speed != 1:
             f.append(f"setpts=PTS/{self.speed}")
         f.append(f"fps={self.fps}")
@@ -84,21 +87,26 @@ class VideoReader:
         f.append("format=rgba")
         return ",".join(f)
 
-    def _open(self):
+    def _open(self, start=0):
+        """Start decoding at output frame `start` (seeks, so a chunk in the middle of a scene starts instantly)."""
         self.close()
+        off = start * self.speed / self.fps
+        if self.length:
+            off = off % self.length if self.loop else min(off, max(0.0, self.length - 0.05))
+        self.start_off = off
         cmd = ["ffmpeg", "-v", "error", "-nostdin"]
         if self.loop:
             cmd += ["-stream_loop", "-1"]
-        if self.trim[0] > 0:
-            cmd += ["-ss", f"{self.trim[0]:.3f}"]
+        if self.trim[0] + off > 0:
+            cmd += ["-ss", f"{self.trim[0] + off:.3f}"]
         cmd += ["-i", self.path, "-an", "-vf", self._vf(), "-f", "rawvideo", "-pix_fmt", "rgba", "-"]
         self.proc = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, bufsize=self.w * self.h * 4 * 2)
-        self.index = -1
+        self.index = start - 1
         self.ended = False
 
     def frame(self, i):
-        if self.proc is None or i < self.index:
-            self._open()
+        if self.proc is None or i < self.index or i > self.index + self.fps * 2:
+            self._open(i)
         size = self.w * self.h * 4
         while self.index < i and not self.ended:
             buf = self.proc.stdout.read(size)

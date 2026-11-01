@@ -70,13 +70,41 @@ class Content:
     """A rendered layer image. `d` = image pixels per logical pixel; `box` = the logical box (bx, by, bw, bh) in image
     pixels that anchors and sizes refer to (padding for strokes/shadows lies outside it)."""
 
-    __slots__ = ("img", "d", "box", "_pm")
+    __slots__ = ("img", "d", "box", "_pm", "_opaque", "_rgb")
 
     def __init__(self, img, d=1.0, box=None):
         self.img = img
         self.d = d
         self.box = box or (0, 0, img.width, img.height)
         self._pm = None
+        self._opaque = None
+        self._rgb = None
+
+    def ibox(self):
+        """The logical box rounded inward to whole pixels and clipped to the image."""
+        bx, by, bw, bh = self.box
+        x0, y0 = max(0, int(math.ceil(bx - 1e-6))), max(0, int(math.ceil(by - 1e-6)))
+        x1, y1 = min(self.img.width, int(math.floor(bx + bw + 1e-6))), min(self.img.height, int(math.floor(by + bh + 1e-6)))
+        if (x0, y0, x1, y1) != (0, 0, self.img.width, self.img.height) and x1 - x0 > 12 and y1 - y0 > 12:
+            x0, y0, x1, y1 = x0 + 3, y0 + 3, x1 - 3, y1 - 3  # skip the antialiased rim of drawn shapes
+        return x0, y0, x1, y1
+
+    @property
+    def opaque(self):
+        """True when the box area is fully opaque (photos, textures, solid backgrounds). Checked once."""
+        if self._opaque is None:
+            x0, y0, x1, y1 = self.ibox()
+            if x1 - x0 < 2 or y1 - y0 < 2:
+                self._opaque = False
+            else:
+                self._opaque = self.img.mode != "RGBA" or self.img.getchannel("A").crop((x0, y0, x1, y1)).getextrema()[0] == 255
+        return self._opaque
+
+    def rgb(self):
+        """RGB copy of the box area (for the opaque fast path)."""
+        if self._rgb is None:
+            self._rgb = self.img.crop(self.ibox()).convert("RGB")
+        return self._rgb
 
     @property
     def logical_size(self):
@@ -137,6 +165,31 @@ def _blend(canvas, img, x0, y0, mode):
     canvas.paste(Image.fromarray((out * 255 + 0.5).astype(np.uint8), "RGBA"), (x0, y0))
 
 
+def _resample(src, data, size, resample):
+    """Sample `src` into an image of `size` with the inverse affine `data` (output px → source px).
+    Unrotated transforms (camera zoom/pan, scaling — the usual case) use resize(box), about 2× faster than transform."""
+    A, B, C, D, E, F = data
+    W, H = size
+    if abs(B) < 1e-9 and abs(D) < 1e-9 and A > 0 and E > 0:
+        sw, sh = src.size
+        u0, u1 = C, A * W + C
+        v0, v1 = F, E * H + F
+        cu0, cu1, cv0, cv1 = max(0.0, u0), min(float(sw), u1), max(0.0, v0), min(float(sh), v1)
+        if cu1 <= cu0 or cv1 <= cv0:
+            return Image.new(src.mode, size, 0)
+        x0, x1 = (cu0 - C) / A, (cu1 - C) / A
+        y0, y1 = (cv0 - F) / E, (cv1 - F) / E
+        ox0, oy0 = int(round(x0)), int(round(y0))
+        ow, oh = max(1, int(round(x1)) - ox0), max(1, int(round(y1)) - oy0)
+        piece = src.resize((ow, oh), resample, box=(cu0, cv0, cu1, cv1))
+        if (ox0, oy0, ow, oh) == (0, 0, W, H):
+            return piece
+        out = Image.new(src.mode, size, 0)
+        out.paste(piece, (ox0, oy0))
+        return out
+    return src.transform(size, Image.Transform.AFFINE, data, resample=resample)
+
+
 def draw(canvas, content, m, opacity=1.0, blend="normal", fast=False):
     """Composite `content` onto `canvas` (RGBA) through matrix `m` (content pixels → canvas pixels).
     Returns the canvas-space bbox drawn, or None."""
@@ -161,6 +214,9 @@ def draw(canvas, content, m, opacity=1.0, blend="normal", fast=False):
         if sx1 <= sx0 or sy1 <= sy0:
             return None
         piece = img.crop((sx0, sy0, sx1, sy1)) if (sx0, sy0, sx1, sy1) != (0, 0, w, h) else img
+        if opacity >= 0.999 and blend == "normal" and content.ibox() == (0, 0, w, h) and content.opaque:
+            canvas.paste(piece, (tx + sx0, ty + sy0))
+            return (tx + sx0, ty + sy0, tx + sx1, ty + sy1)
         if opacity < 0.999:
             piece = _opacity(piece.copy(), opacity)
         if blend != "normal":
@@ -168,9 +224,24 @@ def draw(canvas, content, m, opacity=1.0, blend="normal", fast=False):
         else:
             canvas.alpha_composite(piece, (tx + sx0, ty + sy0))
         return (tx + sx0, ty + sy0, tx + sx1, ty + sy1)
+    kx, ky = math.hypot(a, d), math.hypot(b, e)
+    if opacity >= 0.999 and blend == "normal" and kx >= 0.6 and ky >= 0.6 and content.opaque:
+        # Opaque layer (photo, texture, gradient background): if it covers the whole target region, resample plain RGB
+        # and paste — no premultiply, no alpha blending. This is the common full-screen background under a moving camera.
+        inv = invert(m)
+        bx0, by0, bx1, by1 = content.ibox()
+        if inv is not None:
+            corners = [apply(inv, x, y) for x, y in ((ix0, iy0), (ix1, iy0), (ix0, iy1), (ix1, iy1))]
+            if all(bx0 - 0.01 <= u <= bx1 + 0.01 and by0 - 0.01 <= v <= by1 + 0.01 for u, v in corners):
+                A, B, C, D, E, F = inv
+                data = (A, B, A * ix0 + B * iy0 + C - bx0, D, E, D * ix0 + E * iy0 + F - by0)
+                near_one = 0.85 < kx < 1.2 and 0.85 < ky < 1.2
+                big = (ix1 - ix0) * (iy1 - iy0) > 1_000_000  # full-screen backgrounds: bilinear is indistinguishable and cheaper
+                out = _resample(content.rgb(), data, (ix1 - ix0, iy1 - iy0), BILINEAR if (fast or near_one or big) else BICUBIC)
+                canvas.paste(out, (ix0, iy0))
+                return (ix0, iy0, ix1, iy1)
     src = content.premultiplied()
     # Strong downscale: pre-shrink with a good filter so the affine sample does not alias.
-    kx, ky = math.hypot(a, d), math.hypot(b, e)
     if (kx < 0.6 or ky < 0.6) and w > 4 and h > 4:
         nw, nh = max(1, int(round(w * min(1.0, kx * 1.15)))), max(1, int(round(h * min(1.0, ky * 1.15))))
         if (nw, nh) != (w, h):
@@ -183,8 +254,7 @@ def draw(canvas, content, m, opacity=1.0, blend="normal", fast=False):
     data = (A, B, A * ix0 + B * iy0 + C, D, E, D * ix0 + E * iy0 + F)
     kx, ky = math.hypot(m[0], m[3]), math.hypot(m[1], m[4])
     near_one = 0.85 < kx < 1.2 and 0.85 < ky < 1.2
-    out = src.transform((ix1 - ix0, iy1 - iy0), Image.Transform.AFFINE, data,
-                        resample=BILINEAR if (fast or near_one) else BICUBIC).convert("RGBA")
+    out = _resample(src, data, (ix1 - ix0, iy1 - iy0), BILINEAR if (fast or near_one) else BICUBIC).convert("RGBA")
     if opacity < 0.999:
         out = _opacity(out, opacity)
     if blend != "normal":
@@ -239,6 +309,18 @@ def fill_mask(mask, fill, where="fill"):
 
 # --- effects on content -----------------------------------------------------------------------------------------------
 
+def soft_blur(img, radius):
+    """Gaussian blur; large radii are blurred on a 2–4× smaller copy (same look, a fraction of the work)."""
+    if radius < 0.3:
+        return img
+    f = 1 if radius < 6 else 2 if radius < 20 else 4
+    if f == 1 or img.width < f * 8 or img.height < f * 8:
+        return img.filter(ImageFilter.GaussianBlur(radius))
+    small = img.resize((max(1, img.width // f), max(1, img.height // f)), BILINEAR)
+    small = small.filter(ImageFilter.GaussianBlur(radius / f))
+    return small.resize(img.size, BILINEAR)
+
+
 def add_shadow(content, spec, where="shadow", glow=False):
     """Drop shadow (or glow) behind content. spec: {"color","opacity","blur","dx","dy","spread"} in logical px."""
     if spec is True:
@@ -260,7 +342,7 @@ def add_shadow(content, spec, where="shadow", glow=False):
     if spread > 0:
         alpha = alpha.filter(ImageFilter.MaxFilter(int(spread) * 2 + 1))
     if blur > 0:
-        alpha = alpha.filter(ImageFilter.GaussianBlur(blur / 2))
+        alpha = soft_blur(alpha, blur / 2)
     alpha = alpha.point(lambda v: int(v * op))
     if glow:
         alpha = ImageChops.add(alpha, alpha.point(lambda v: v // 2))
@@ -285,7 +367,7 @@ def blur_content(content, radius_logical):
     if r < 0.3:
         return content
     padded = pad_content(content, int(math.ceil(r * 2.2)))
-    padded.img = padded.img.convert("RGBa").filter(ImageFilter.GaussianBlur(r)).convert("RGBA")
+    padded.img = soft_blur(padded.img.convert("RGBa"), r).convert("RGBA")
     return padded
 
 

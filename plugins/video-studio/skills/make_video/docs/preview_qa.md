@@ -43,10 +43,20 @@ The coordinates `inspect` prints are frame pixels: x from the left, y from the t
 
 ## Phone performance
 
+How rendering works: each scene is split into ~1–4 s chunks and every CPU core renders chunks in parallel (workers
+default to cores − 1, limited by free memory: about 500 MB each). Finished chunks and scenes are cached, so after an
+edit only the changed scene re-renders. The log shows overall fps.
+
 - Preview at `--scale 0.4` (≈ 430×770) is 5–10× faster than final. Iterate with preview.
-- Full-frame effects cost the most: `blend` modes on big layers, `blur` animating on large images, `custom` layers drawing
-  full-screen every frame, more than 150 particles, many simultaneous videos.
-- Static layers are cheap (rendered once, then moved). Text with `reveal` costs a little more until the reveal finishes.
-- `--workers N` sets parallel scenes (default 2 on phones). Use `--workers 1` if Android kills the process (low memory).
+- `--workers N` overrides the worker count. Use fewer (e.g. 2) if Android kills the process (low memory); the phone
+  stays responsive with `--workers` = half the cores.
+- What costs the most per frame:
+  - **Rotating the camera** (`camera.animate.rotation`) or rotating large layers: unrotated moves (zoom, pan, shake,
+    handheld, punches) take a fast path that is about 2× cheaper.
+  - **Large layers with transparency or blend modes** (`blend` on full-screen layers, big glows, full-screen `blur`
+    animation). Opaque full-screen backgrounds (photos, textures, gradients) are cheap.
+  - **Things that change every frame**: `particles` (keep ≤ 150), `video` layers, `custom` layers, animated `progress`
+    with `glow`, text `reveal` while it runs. Static layers and groups are drawn once and reused.
 - Keep source images under ~3000 px; resize huge photos first (`ffmpeg -i big.jpg -vf scale=2000:-1 small.jpg`).
-- Long scenes (>10 s) can't be split across workers. Prefer several shorter scenes.
+- Encoding (x264) is ~20 % of the work and runs inside the workers. `--preset ultrafast` encodes 2–3× faster but
+  makes bigger files.

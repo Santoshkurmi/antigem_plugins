@@ -157,14 +157,18 @@ class ShapeLayer(Layer):
             if v is not None and not isinstance(v, dict):
                 parse_color(v, f"{where}.{k}")
 
-    def content(self, p, d):
-        prog = round(p.progress, 3)
+    def content_key(self, p, d):
         rough = float(self.spec.get("rough", 0) or 0)
         bf = int(p.lt * float(self.spec.get("boil", 8))) if rough and self.spec.get("boil", 8) else 0
-        return self.cached((round(d, 3), prog, bf), lambda: self._make(d, prog, rough, bf))
+        return (round(d, 3), round(p.progress, 3), bf)
+
+    def content(self, p, d):
+        key = self.content_key(p, d)
+        rough = float(self.spec.get("rough", 0) or 0)
+        return self.cached(key, lambda: self._make(d, key[1], rough, key[2]))
 
     def _make(self, d, prog, rough=0.0, bf=0):
-        ss = 2 if self.bw * self.bh * d * d < 2.5e6 else 1
+        ss = 2 if self.bw * self.bh * d * d < 0.8e6 else 1  # big shapes (backgrounds) gain nothing from supersampling
         k = d * ss
         sw = self.sw * k
         head = float(self.spec.get("head", max(18.0, self.sw * 3.2))) * k if self.kind == "arrow" else 0
@@ -279,11 +283,14 @@ class ChartLayer(Layer):
     def _grow(self, lt, i):
         return easing.apply(self.grow_ease, (lt - self.grow_delay - i * self.grow_stagger) / self.grow_dur)
 
-    def content(self, p, d):
+    def content_key(self, p, d):
         n = len(self.values)
         done = p.lt > self.grow_delay + (n - 1) * self.grow_stagger + self.grow_dur
-        key = (round(d, 3), "done" if done else round(p.lt, 4))
-        return self.cached(key, lambda: self._make(1e9 if done else p.lt, d))
+        return (round(d, 3), "done" if done else round(p.lt, 4))
+
+    def content(self, p, d):
+        key = self.content_key(p, d)
+        return self.cached(key, lambda: self._make(1e9 if key[1] == "done" else p.lt, d))
 
     def _make(self, lt, d):
         s = self.spec

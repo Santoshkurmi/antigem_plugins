@@ -222,6 +222,10 @@ class Layer:
     def content(self, p, d):
         raise NotImplementedError
 
+    def content_key(self, p, d):
+        """What content(p, d) would draw, as a hashable value; None = changes every frame (video, particles...)."""
+        return None
+
     def cached(self, key, make):
         if self._cache[0] == key:
             return self._cache[1]
@@ -401,9 +405,12 @@ class ImageLayer(Layer):
                 path = self.talk_open
         return path
 
+    def content_key(self, p, d):
+        return (self.current(p.lt) if self.multi else self.path, round(d, 3))
+
     def content(self, p, d):
-        path = self.current(p.lt) if self.multi else self.path
-        return self.cached((path, round(d, 3)), lambda: self._make(path, d))
+        key = self.content_key(p, d)
+        return self.cached(key, lambda: self._make(key[0], d))
 
     def _make(self, path, d):
         src = self._img(path)
@@ -479,7 +486,7 @@ class VideoLayer(Layer):
             tw, th = max(2, int(round(self.bw * d))), max(2, int(round(self.bh * d)))
             key = self.spec.get("key")
             self.reader = VideoReader(self.path, tw, th, self.rc.fps, self.trim, self.speed, self.fit,
-                                      bool(self.spec.get("loop_video", True)), key, self.spec.get("focus"))
+                                      bool(self.spec.get("loop_video", True)), key, self.spec.get("focus"), self.info.get("duration", 0.0))
             self.reader.d = d
         frame = self.reader.frame(int(p.lt * self.rc.fps + 1e-6))
         if frame is None:
@@ -581,11 +588,13 @@ class TextLayer(Layer):
         self.unit_starts = starts
         self.reveal_end = max(starts) + self.reveal_motion.duration if starts else 0
 
-    def content(self, p, d):
-        txt = self.current_text(p)
+    def content_key(self, p, d):
         animating = self.reveal and p.lt < self.reveal_end
-        key = (txt, round(d, 3), "static" if not animating else round(p.lt, 4))
-        return self.cached(key, lambda: self._make(txt, d, p if animating else None))
+        return (self.current_text(p), round(d, 3), "static" if not animating else round(p.lt, 4))
+
+    def content(self, p, d):
+        key = self.content_key(p, d)
+        return self.cached(key, lambda: self._make(key[0], d, p if key[2] != "static" else None))
 
     def _make(self, txt, d, p):
         lay, sprites = self._layout(txt, d)
@@ -700,7 +709,34 @@ class GroupLayer(Layer):
                 self.mask.resolve_times()
                 self.mask.prepare()
 
+    def _signature(self, lt, d):
+        """Positions + content keys of everything inside; equal signatures = identical group image."""
+        sig = [round(d, 3)]
+        for layer in self.inner.layers + ([self.mask] if self.mask else []):
+            q = layer.props(lt)
+            if q is None:
+                sig.append(None)
+                continue
+            key = layer.content_key(q, layer.density(d))
+            if key is None:
+                return None
+            sig.append((round(q.x, 2), round(q.y, 2), round(q.sx, 4), round(q.sy, 4), round(q.rot, 3), round(q.skx, 3),
+                        round(q.sky, 3), round(q.opacity, 3), round(q.blur, 2), tuple(round(c, 3) for c in q.crop), key))
+        return tuple(sig)
+
+    def content_key(self, p, d):
+        sig = self._signature(p.lt, d)
+        return None if sig is None else ("group", sig)
+
     def content(self, p, d):
+        sig = self._signature(p.lt, d)
+        if sig is not None and self._cache[0] == sig:
+            return self._cache[1]
+        c = self._draw(p, d)
+        self._cache = (sig, c) if sig is not None else (None, None)
+        return c
+
+    def _draw(self, p, d):
         # children may overflow the group box (shadows, overshoot, long text) unless "clip": true
         m = 0 if self.spec.get("clip") else int(math.ceil(max(self.gw, self.gh) * 0.3 * d))
         gw, gh = max(1, int(math.ceil(self.gw * d))) + 2 * m, max(1, int(math.ceil(self.gh * d))) + 2 * m
@@ -719,7 +755,11 @@ class GroupLayer(Layer):
             if self.spec.get("mask_invert"):
                 ma = ImageOps.invert(ma)
             img.putalpha(raster.ImageChops.multiply(img.getchannel("A"), ma))
-        return self.effects(Content(img, d, (m, m, gw - 2 * m, gh - 2 * m)))
+        bb = img.getchannel("A").getbbox()  # crop the empty overflow margin so later steps touch fewer pixels
+        if bb is None:
+            return None
+        img = img.crop(bb)
+        return self.effects(Content(img, d, (m - bb[0], m - bb[1], gw - 2 * m, gh - 2 * m)))
 
     def density(self, dens):
         return dens * (self.detail or 1.0)

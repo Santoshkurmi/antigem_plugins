@@ -17,7 +17,7 @@ Custom plugins for the AntiGem app, installable straight from this repository
 
 | plugin | version | folder | what it does |
 |---|---|---|---|
-| **Video Studio** | 1.0.0 | [`plugins/video-studio`](plugins/video-studio) | Make edited videos on the phone from a JSON timeline. Skills only (no MCP tools). |
+| **Video Studio** | 1.1.0 | [`plugins/video-studio`](plugins/video-studio) | Make edited videos on the phone from a JSON timeline. Skills only (no MCP tools). |
 
 ### Video Studio
 

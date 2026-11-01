@@ -209,8 +209,8 @@ class Camera:
         elif p == "handheld":
             z = 1.03
             un = self.rc.anim_ctx["unit"]
-            x, y = anim._noise(3, t * 0.8) * 6 * un * a, anim._noise(9, t * 0.7) * 5 * un * a
-            r = anim._noise(21, t * 0.5) * 0.35 * a
+            # no roll: an unrotated camera keeps every layer on the fast resampling path
+            x, y = anim._noise(3, t * 0.8) * 7 * un * a, anim._noise(9, t * 0.7) * 6 * un * a
         if "zoom" in self.tracks:
             z = self.tracks["zoom"].value(t)
         if "x" in self.tracks:

@@ -101,6 +101,9 @@ class TextureLayer(Layer):
         self.bw = length(spec.get("w"), W, where + ".w", W, H) if spec.get("w") is not None else (self.slot[2] if self.slot else W)
         self.bh = length(spec.get("h"), H, where + ".h", W, H) if spec.get("h") is not None else (self.slot[3] if self.slot else H)
 
+    def content_key(self, p, d):
+        return round(d, 3)
+
     def content(self, p, d):
         def make():
             w, h = max(1, int(self.bw * d)), max(1, int(self.bh * d))

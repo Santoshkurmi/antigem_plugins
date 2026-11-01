@@ -78,13 +78,13 @@ def scene_key(spec, rc, entry, settings):
 
 
 def _render_segment(job):
-    """Runs in a worker process: renders one scene to an mp4."""
+    """Runs in a worker process: renders frames [f0, f1) of one scene to a video chunk."""
     t0 = time.time()
     rc = RenderContext(job["spec"], job["dir"], job["q"], job["fps"], job["fast"])
     entry = job["entry"]
     sr = SceneRenderer(rc, job["spec"], entry, job["chunks"])
     w, h = rc_size(rc)
-    n = max(1, int(round(entry["duration"] * rc.fps)))
+    f0, f1 = job["range"]
     if rc.alpha:
         # transparent overlay (OBS, editors): VP9 with alpha in WebM; looks are skipped
         tmp = job["out"] + ".part.webm"
@@ -97,11 +97,11 @@ def _render_segment(job):
         tmp = job["out"] + ".part.mp4"
         cmd = ["ffmpeg", "-y", "-v", "error", "-nostdin", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{w}x{h}", "-r", f"{rc.fps}",
                "-i", "-", "-vf", ",".join(vf), "-c:v", "libx264", "-preset", job["preset"], "-crf", str(job["crf"]),
-               "-pix_fmt", "yuv420p", "-g", str(int(rc.fps * 2)), "-an", tmp]
+               "-pix_fmt", "yuv420p", "-g", str(int(rc.fps * 2)), "-threads", str(job["threads"]), "-an", tmp]
         mode = "RGB"
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
-        for i in range(n):
+        for i in range(f0, f1):
             frame = sr.frame(i / rc.fps)
             if frame.size != (w, h):
                 frame = frame.resize((w, h))
@@ -116,7 +116,7 @@ def _render_segment(job):
     finally:
         sr.close()
     os.replace(tmp, job["out"])
-    return entry["id"], n, time.time() - t0
+    return entry["id"], f1 - f0, time.time() - t0
 
 
 def rc_size(rc):
@@ -146,28 +146,53 @@ def render(project, out_path, q=1.0, fps=None, fast=False, crf=19, preset="veryf
     if rc.alpha and not out_path.endswith(".webm"):
         out_path = os.path.splitext(out_path)[0] + ".webm"
         log("transparent output → WebM (VP9 + alpha); scene transitions become cuts")
+    workers = workers or default_workers()
+    todo = []
     for e, sr in renderers:
         key = scene_key(spec, rc, e, settings)
         seg = os.path.join(project.cache, "segments", f"{e['id']}-{key}{ext}")
         segs.append((e, seg))
         if not os.path.exists(seg):
-            jobs.append({"spec": spec, "dir": project.dir, "q": q, "fps": rc.fps, "fast": fast, "entry": e, "chunks": chunks,
-                         "out": seg, "crf": crf, "preset": preset})
-    cached = len(segs) - len(jobs)
-    log(f"{len(segs)} scene(s), {total:.2f}s total · {cached} cached · rendering {len(jobs)} at {rc_size(rc)[0]}x{rc_size(rc)[1]} {rc.fps:g}fps")
+            todo.append((e, seg))
+    # Split scenes into chunks so every core stays busy (a long scene no longer runs on one core alone).
+    total_frames = sum(max(1, int(round(e["duration"] * rc.fps))) for e, _ in todo)
+    chunk = int(max(rc.fps, min(rc.fps * 4, total_frames / max(1, workers * 3))))
+    threads = max(1, (os.cpu_count() or 2) // max(1, workers))
+    parts = {}
+    for e, seg in todo:
+        n = max(1, int(round(e["duration"] * rc.fps)))
+        bounds = list(range(0, n, chunk)) + [n]
+        if len(bounds) > 2 and bounds[-1] - bounds[-2] < chunk // 3:  # fold a tiny last piece into the previous one
+            bounds.pop(-2)
+        parts[seg] = []
+        for k in range(len(bounds) - 1):
+            part = f"{seg[:-len(ext)]}.c{k:03d}{ext}"
+            parts[seg].append(part)
+            if not os.path.exists(part):
+                jobs.append({"spec": spec, "dir": project.dir, "q": q, "fps": rc.fps, "fast": fast, "entry": e, "chunks": chunks,
+                             "out": part, "crf": crf, "preset": preset, "range": (bounds[k], bounds[k + 1]), "threads": threads})
+    cached = len(segs) - len(todo)
+    log(f"{len(segs)} scene(s), {total:.2f}s total · {cached} cached · rendering {total_frames} frames in {len(jobs)} chunk(s) "
+        f"on {min(workers, max(1, len(jobs)))} worker(s) at {rc_size(rc)[0]}x{rc_size(rc)[1]} {rc.fps:g}fps")
     t0 = time.time()
     if jobs:
-        workers = workers or default_workers()
+        done_frames = 0
+        jobs.sort(key=lambda j: -(j["range"][1] - j["range"][0]))
+
+        def report(sid, n, dt):
+            nonlocal done_frames
+            done_frames += n
+            el = time.time() - t0
+            log(f"  ✓ {sid} +{n} frames ({done_frames}/{total_frames}, {done_frames / max(el, 1e-3):.1f} fps overall)")
         if workers <= 1 or len(jobs) == 1:
             for j in jobs:
-                sid, n, dt = _render_segment(j)
-                log(f"  ✓ {sid}: {n} frames in {dt:.1f}s ({n / max(dt, 1e-3):.1f} fps)")
+                report(*_render_segment(j))
         else:
             with cf.ProcessPoolExecutor(max_workers=min(workers, len(jobs))) as ex:
-                futs = {ex.submit(_render_segment, j): j for j in jobs}
-                for f in cf.as_completed(futs):
-                    sid, n, dt = f.result()
-                    log(f"  ✓ {sid}: {n} frames in {dt:.1f}s ({n / max(dt, 1e-3):.1f} fps)")
+                for f in cf.as_completed([ex.submit(_render_segment, j) for j in jobs]):
+                    report(*f.result())
+    for e, seg in todo:
+        _concat_parts(parts[seg], seg)
     video_tmp = out_path + ".video" + ext
     _join(segs, video_tmp, rc.fps, crf, preset, joined_all=not scenes and not rc.alpha)
     audio_path = None
@@ -192,6 +217,24 @@ def render(project, out_path, q=1.0, fps=None, fast=False, crf=19, preset="veryf
     log(f"done in {time.time() - t0:.1f}s → {out_path}")
     _prune(project, segs)
     return out_path
+
+
+def _concat_parts(parts, out):
+    """Join a scene's chunks without re-encoding (they share codec settings and each starts on a keyframe)."""
+    if len(parts) == 1:
+        os.replace(parts[0], out)
+        return
+    lst = out + ".txt"
+    with open(lst, "w") as f:
+        for p in parts:
+            f.write(f"file '{p}'\n")
+    r = subprocess.run(["ffmpeg", "-y", "-v", "error", "-nostdin", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", out],
+                       stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=FFMPEG_TIMEOUT)
+    os.remove(lst)
+    if r.returncode != 0:
+        raise RuntimeError("joining chunks failed: " + r.stderr[-800:])
+    for p in parts:
+        os.remove(p)
 
 
 def _all_layers(layers):

@@ -177,13 +177,17 @@ class StickmanLayer(Layer):
         g = self.tl.start_global + self.start + lt
         return speaking(self.rc, g, self.talk_spans) and int(g * 9) % 2 == 1
 
-    def content(self, p, d):
+    def content_key(self, p, d):
         pose, lift = self.angles(p.lt)
-        e, mo = self.expression(p.lt), self.mouth_open(p.lt)
         rough = float(self.spec.get("rough", 0) or 0)
         bf = int(p.lt * float(self.spec.get("boil", 8))) if rough else 0
-        key = (round(d, 3), tuple(round(pose[k], 1) for k in J), round(lift, 4), e, mo, bf)
-        return self.cached(key, lambda: self._draw(pose, lift, e, mo, d, rough, bf))
+        return (round(d, 3), tuple(round(pose[k], 1) for k in J), round(lift, 4), self.expression(p.lt), self.mouth_open(p.lt), bf)
+
+    def content(self, p, d):
+        key = self.content_key(p, d)
+        pose, lift = self.angles(p.lt)
+        rough = float(self.spec.get("rough", 0) or 0)
+        return self.cached(key, lambda: self._draw(pose, lift, key[3], key[4], d, rough, key[5]))
 
     def _draw(self, pose, lift, expr, mouth, d, rough, bf):
         ss = 2

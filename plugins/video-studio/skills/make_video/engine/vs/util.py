@@ -9,7 +9,7 @@ import re
 ENGINE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKILL_DIR = os.path.dirname(ENGINE_DIR)
 FONTS_DIR = os.path.join(SKILL_DIR, "fonts")
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 
 class SpecError(Exception):
@@ -117,9 +117,25 @@ def is_android():
     return "com.termux" in os.environ.get("PREFIX", "") or os.path.exists("/system/build.prop") or "ANDROID_ROOT" in os.environ
 
 
+def available_mb():
+    try:
+        with open("/proc/meminfo") as f:
+            for line in f:
+                if line.startswith("MemAvailable:"):
+                    return int(line.split()[1]) // 1024
+    except OSError:
+        pass
+    return None
+
+
 def default_workers():
+    """All cores but one, limited by free memory (a 1080p worker peaks around 300–500 MB)."""
     cpus = os.cpu_count() or 2
-    return max(1, min(2 if is_android() else 4, cpus - 1 if cpus > 1 else 1))
+    n = max(1, min(8, cpus - 1 if cpus > 2 else cpus))
+    mb = available_mb()
+    if mb:
+        n = max(1, min(n, mb // 500))
+    return n
 
 
 def fmt_time(t):
