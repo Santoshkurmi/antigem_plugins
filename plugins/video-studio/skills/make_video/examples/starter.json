@@ -1,0 +1,92 @@
+{
+  // Starter: needs no asset files. Copy it with `studio.py new DIR` and edit.
+  "title": "Starter",
+  "aspect": "9:16",
+  "fps": 30,
+  "transition": {"type": "fade", "duration": 0.4},
+  "look": {"vignette": 0.35, "grain": 0.15},
+  "defs": {
+    "card": {
+      "params": {"title": "Title", "body": "Body", "accent": "#ff375f"},
+      "layer": {
+        "type": "group", "w": 860, "h": 300,
+        "enter": {"preset": "pop", "duration": 0.55},
+        "loop": {"preset": "float", "amp": 8, "period": 3.4},
+        "shadow": {"blur": 30, "dy": 18, "opacity": 0.45},
+        "layers": [
+          {"type": "shape", "kind": "rect", "w": 860, "h": 300, "radius": 36, "fill": "#ffffff"},
+          {"type": "shape", "kind": "rect", "w": 14, "h": 200, "x": 50, "radius": 7, "fill": "{{accent}}"},
+          {"type": "text", "text": "{{title}}", "font": "display", "size": 76, "color": "#111111", "align": "left",
+           "x": 90, "y": 105, "anchor": "left", "max_width": 720},
+          {"type": "text", "text": "{{body}}", "font": "sans", "size": 40, "color": "#444444", "align": "left",
+           "x": 90, "y": 195, "anchor": "left", "max_width": 720}
+        ]
+      }
+    }
+  },
+  "audio": {
+    "sfx": [{"src": "sfx:riser", "at": 0, "volume": 0.4}]
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "duration": 4,
+      "background": {"colors": ["#1b1f3b", "#0b0d1a"], "angle": 90},
+      "camera": {"preset": "push_in", "punches": [{"at": 1.1, "amount": 0.05}]},
+      "layers": [
+        {"type": "particles", "kind": "bokeh", "count": 14, "opacity": 0.5},
+        {"type": "shape", "id": "kicker_bg", "kind": "rect", "w": 420, "h": 76, "radius": 38, "fill": "#ff375f",
+         "y": "30%", "at": 0.2, "enter": "wipe_right"},
+        {"type": "text", "text": "DID YOU KNOW?", "font": "sans", "size": 40, "y": "30%", "at": "with:kicker_bg+0.15",
+         "enter": "fade", "letter_spacing": 4},
+        {"type": "text", "id": "headline", "text": "Your phone can *edit videos* like a studio",
+         "font": "display", "size": 120, "slot": "middle", "at": 0.5, "uppercase": true,
+         "stroke_width": 0, "shadow": {"blur": 20, "dy": 10},
+         "reveal": {"by": "word", "preset": "rise", "stagger": 0.09, "duration": 0.5}, "sfx": "sfx:whoosh"},
+        {"type": "counter", "from": 0, "to": 1000000, "format": "{:,.0f}", "suffix": "+", "font": "display", "size": 110,
+         "color": {"colors": ["#ffd60a", "#ff9f0a"], "angle": 90}, "y": "72%", "at": 1.6, "enter": "pop",
+         "count": {"duration": 1.6}, "sfx": {"src": "sfx:pop", "volume": 0.6}},
+        {"type": "text", "text": "frames rendered on a phone", "font": "sans", "size": 40, "color": "#c7c7cc",
+         "y": "78%", "at": "1.8", "enter": "rise"}
+      ]
+    },
+    {
+      "id": "data",
+      "duration": 4.5,
+      "transition": "whip_left",
+      "background": "#0f1115",
+      "camera": "drift",
+      "layers": [
+        {"type": "text", "text": "Growth per year", "font": "display", "size": 84, "slot": "title", "enter": "slide_down"},
+        {"type": "chart", "kind": "column", "values": [12, 28, 45, 71, 96], "labels": ["2021", "22", "23", "24", "25"],
+         "slot": "hero", "at": 0.3, "grow": {"duration": 0.9, "stagger": 0.15, "ease": "out_back"}, "format": "{:.0f}%"},
+        {"type": "shape", "kind": "arrow", "points": [[160, 1280], [420, 1180], [700, 1000], [930, 760]], "curve": true,
+         "stroke": "#ffd60a", "stroke_width": 12, "dash": [26, 16], "at": 1.3, "animate": {"progress": [[0, 0], [1.2, 1, "in_out_cubic"]]},
+         "sfx": "sfx:swish"},
+        {"type": "shape", "kind": "ring", "size": 170, "stroke": "#30d158", "stroke_width": 20, "x": "80%", "y": "75%",
+         "at": 2.4, "animate": {"progress": [[0, 0], [1.0, 0.82, "out_cubic"]]}, "enter": "pop"},
+        {"type": "counter", "from": 0, "to": 82, "suffix": "%", "font": "display", "size": 56, "x": "80%", "y": "75%",
+         "at": 2.4, "count": {"duration": 1.0, "ease": "out_cubic"}}
+      ]
+    },
+    {
+      "id": "cta",
+      "duration": 4,
+      "transition": {"type": "zoom", "duration": 0.45},
+      "background": {"colors": ["#ff9a8b", "#ff6a88", "#ff99ac"], "angle": 45},
+      "camera": "handheld",
+      "layers": [
+        {"use": "card", "with": {"title": "Templates", "body": "Reuse any block with defs + use"}, "y": "36%", "at": 0.2,
+         "sfx": "sfx:pop"},
+        {"use": "card", "with": {"title": "Keyframes", "body": "Animate anything with easing", "accent": "#0a84ff"},
+         "y": "56%", "at": 0.5, "sfx": "sfx:pop"},
+        {"type": "shape", "kind": "star", "size": 120, "fill": "#ffd60a", "x": "84%", "y": "22%", "at": 0.9,
+         "enter": "spin", "loop": {"preset": "spin", "period": 8}},
+        {"type": "text", "text": "Start creating", "font": "display", "size": 96, "y": "78%", "at": 1.2,
+         "reveal": {"by": "char", "preset": "pop", "stagger": 0.035}, "loop": {"preset": "pulse", "amp": 0.04},
+         "stroke_width": 6, "stroke_color": "#7a1030", "exit": "fade"},
+        {"type": "particles", "kind": "confetti", "count": 70, "at": 2.0, "camera": false}
+      ]
+    }
+  ]
+}

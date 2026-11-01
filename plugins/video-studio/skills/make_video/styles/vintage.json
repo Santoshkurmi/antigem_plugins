@@ -1,0 +1,38 @@
+{
+ "about": "Old film / archival: sepia-warm, heavy grain, vignette, serif type, dips \u2014 history and nostalgia.",
+ "theme": {
+  "bg": "#1a140d",
+  "surface": "#2b2217",
+  "text": "#f1e4c8",
+  "muted": "#b9a780",
+  "accent": "#d9a441",
+  "accent2": "#a63d2a",
+  "ink": "#1a140d",
+  "paper": "#efe2c4",
+  "font_display": "serif",
+  "font_body": "book",
+  "font_mono": "mono",
+  "font_hand": "hand"
+ },
+ "background": {
+  "texture": "paper",
+  "color": "#3a2e20",
+  "ink": "#2a2016"
+ },
+ "camera": "slow_push",
+ "transition": {
+  "type": "dip",
+  "duration": 0.5
+ },
+ "look": {
+  "warmth": 0.5,
+  "saturation": 0.55,
+  "contrast": 1.1,
+  "grain": 0.5,
+  "vignette": 0.7
+ },
+ "captions": {
+  "style": "minimal",
+  "font": "serif"
+ }
+}

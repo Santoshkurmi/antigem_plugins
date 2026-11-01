@@ -1,0 +1,67 @@
+{
+ "note": "Quote / motivation post: darkened photo, slow push, dust, revealed quote card.",
+ "style": "luxury",
+ "aspect": "9:16",
+ "scenes": [
+  {
+   "id": "quote",
+   "duration": 5.5,
+   "background": {
+    "image": "placeholder_photo.jpg",
+    "filter": {
+     "brightness": 0.45,
+     "saturation": 0.7
+    },
+    "motion": {
+     "preset": "ken_burns",
+     "to": 1.15
+    }
+   },
+   "layers": [
+    {
+     "type": "particles",
+     "kind": "dust",
+     "count": 50,
+     "opacity": 0.8
+    },
+    {
+     "use": "kit.quote_card",
+     "with": {
+      "text": "We suffer more in imagination than in reality.",
+      "author": "Seneca",
+      "size": 72
+     },
+     "y": "48%",
+     "at": 0.4
+    },
+    {
+     "use": "kit.corner_bug",
+     "with": {
+      "text": "@dailystoic"
+     },
+     "x": "50%",
+     "y": "80%",
+     "at": 1.5
+    },
+    {
+     "use": "kit.underline_scribble",
+     "with": {
+      "w": 300,
+      "color": "$accent"
+     },
+     "y": "60%",
+     "at": 3.2
+    }
+   ],
+   "camera": {
+    "preset": "slow_push",
+    "punches": [
+     {
+      "at": 3.2,
+      "amount": 0.03
+     }
+    ]
+   }
+  }
+ ]
+}

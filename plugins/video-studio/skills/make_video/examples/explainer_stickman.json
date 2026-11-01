@@ -1,0 +1,180 @@
+{
+ "note": "Faceless explainer with the built-in stickman, kit stickers and checklists. Swap fixed times for word cues once you have a voice.",
+ "style": "bold_explainer",
+ "aspect": "9:16",
+ "scenes": [
+  {
+   "id": "hook",
+   "duration": 3.2,
+   "camera": {
+    "preset": "still",
+    "punches": [
+     {
+      "at": 1.1
+     }
+    ]
+   },
+   "layers": [
+    {
+     "use": "kit.headline_underline",
+     "with": {
+      "text": "Why do we *procrastinate*?",
+      "size": 116
+     },
+     "slot": "top_half",
+     "sfx": "sfx:whoosh"
+    },
+    {
+     "type": "stickman",
+     "pose": "shrug",
+     "expression": "worried",
+     "size": 620,
+     "y": "90%",
+     "color": "#ffffff",
+     "enter": "rise",
+     "at": 0.5
+    },
+    {
+     "use": "kit.burst",
+     "with": {
+      "text": "?!",
+      "size": 200
+     },
+     "x": "78%",
+     "y": "56%",
+     "at": 1.1
+    }
+   ]
+  },
+  {
+   "id": "brain",
+   "duration": 4.2,
+   "transition": {
+    "type": "whip_left",
+    "duration": 0.28
+   },
+   "layout": "presenter",
+   "layers": [
+    {
+     "type": "text",
+     "text": "Your brain picks *now* over *later*",
+     "font": "$font_display",
+     "size": 92,
+     "slot": "title",
+     "highlight": "$accent",
+     "reveal": {
+      "by": "word",
+      "preset": "rise",
+      "stagger": 0.07
+     }
+    },
+    {
+     "use": "kit.sticker",
+     "with": {
+      "src": "placeholder_cutout.png",
+      "h": 420
+     },
+     "slot": "visual",
+     "at": 0.6
+    },
+    {
+     "type": "stickman",
+     "pose": "think",
+     "expression": "thinking",
+     "slot": "cast",
+     "color": "#ffffff",
+     "at": 0.3,
+     "enter": "slide_left",
+     "poses": [
+      {
+       "at": 2.2,
+       "pose": "point"
+      }
+     ],
+     "expressions": [
+      {
+       "at": 2.2,
+       "expression": "happy"
+      }
+     ]
+    },
+    {
+     "use": "kit.thought_bubble",
+     "with": {
+      "text": "later...",
+      "w": 360,
+      "h": 190
+     },
+     "x": "70%",
+     "y": "60%",
+     "at": 1.0
+    }
+   ]
+  },
+  {
+   "id": "fix",
+   "duration": 4.6,
+   "transition": {
+    "type": "whip_left",
+    "duration": 0.28
+   },
+   "layers": [
+    {
+     "type": "text",
+     "text": "Try this instead",
+     "font": "$font_display",
+     "size": 100,
+     "slot": "title",
+     "enter": "slide_down"
+    },
+    {
+     "use": "kit.checklist_item",
+     "with": {
+      "text": "Make the first step tiny",
+      "check": 0.5
+     },
+     "x": "8%",
+     "y": "33%",
+     "at": 0.4
+    },
+    {
+     "use": "kit.checklist_item",
+     "with": {
+      "text": "Set a 10-minute timer",
+      "check": 0.5
+     },
+     "x": "8%",
+     "y": "40%",
+     "at": 1.1
+    },
+    {
+     "use": "kit.checklist_item",
+     "with": {
+      "text": "Reward yourself after",
+      "check": 0.5
+     },
+     "x": "8%",
+     "y": "47%",
+     "at": 1.8
+    },
+    {
+     "type": "stickman",
+     "pose": "cheer",
+     "expression": "laugh",
+     "size": 520,
+     "y": "94%",
+     "color": "#ffffff",
+     "at": 2.4,
+     "enter": "pop",
+     "actions": [
+      {
+       "action": "jump",
+       "at": 0.3
+      }
+     ],
+     "sfx": "sfx:success"
+    }
+   ]
+  }
+ ]
+}

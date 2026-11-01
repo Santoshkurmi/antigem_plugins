@@ -1,0 +1,54 @@
+{
+  // Kinetic typography reel, no assets. With a voice, replace fixed `at` times by word cues and add "sync": "voice".
+  "aspect": "9:16",
+  "fps": 30,
+  "background": "#0b0b0f",
+  "look": {"grain": 0.12, "vignette": 0.4},
+  "audio": {"sfx": [{"src": "sfx:riser", "at": 6.2, "volume": 0.5}]},
+  "scenes": [
+    {
+      "id": "stop", "duration": 2.2, "camera": {"preset": "still", "punches": [{"at": 0.05, "amount": 0.08}]},
+      "layers": [
+        {"type": "text", "text": "STOP", "font": "display", "size": 300, "color": "#ff375f", "slot": "middle",
+         "enter": {"preset": "zoom_out", "duration": 0.35}, "sfx": "sfx:hit", "loop": {"preset": "shake", "amp": 3}},
+        {"type": "text", "text": "scrolling for a second", "font": "sans", "size": 52, "color": "#d1d1d6", "y": "62%",
+         "at": 0.6, "reveal": {"by": "word", "preset": "rise", "stagger": 0.08}}
+      ]
+    },
+    {
+      "id": "words", "duration": 3.4, "transition": {"type": "whip_left", "duration": 0.25},
+      "camera": "slow_push",
+      "layers": [
+        {"type": "text", "id": "l1", "text": "Great videos", "font": "display", "size": 140, "uppercase": true, "y": "36%",
+         "reveal": {"by": "char", "preset": "pop", "stagger": 0.03, "duration": 0.35}, "sfx": "sfx:swish"},
+        {"type": "text", "id": "l2", "text": "are *edited*", "font": "display", "size": 140, "uppercase": true, "y": "46%",
+         "at": "with:l1+0.6", "reveal": {"by": "word", "preset": "slide_up", "stagger": 0.1}, "highlight": "#ffd60a"},
+        {"type": "shape", "kind": "rect", "w": 430, "h": 16, "radius": 8, "fill": "#ffd60a", "x": "62%", "y": "52%",
+         "at": "with:l2+0.5", "enter": "wipe_right"},
+        {"type": "text", "text": "not just generated", "font": "serif", "size": 70, "color": "#8e8e93", "y": "62%",
+         "at": "with:l2+1.0", "enter": "blur_in"}
+      ]
+    },
+    {
+      "id": "beats", "duration": 2.8, "transition": "cut", "background": "#ffd60a",
+      "camera": {"preset": "still", "punches": [{"at": 0.0}, {"at": 0.7}, {"at": 1.4}]},
+      "layers": [
+        {"type": "text", "text": "TIMING", "font": "display", "size": 210, "color": "#111", "y": "35%", "until": 0.7, "enter": {"preset": "stamp", "angle": 0}, "sfx": "sfx:pop"},
+        {"type": "text", "text": "MOTION", "font": "display", "size": 210, "color": "#111", "y": "50%", "at": 0.7, "until": 1.4, "enter": {"preset": "stamp", "angle": 0}, "sfx": "sfx:pop"},
+        {"type": "text", "text": "SOUND", "font": "display", "size": 210, "color": "#111", "y": "65%", "at": 1.4, "enter": {"preset": "stamp", "angle": 0}, "sfx": "sfx:pop"},
+        {"type": "text", "text": "all in one JSON file", "font": "mono", "size": 44, "color": "#111", "y": "80%", "at": 1.9,
+         "reveal": {"by": "char", "preset": "typewriter", "stagger": 0.03}, "sfx": "sfx:typing"}
+      ]
+    },
+    {
+      "id": "end", "duration": 3.2, "transition": {"type": "circle", "duration": 0.5},
+      "background": {"colors": ["#1c1c3c", "#0b0b0f"], "radial": true},
+      "layers": [
+        {"type": "particles", "kind": "stars", "count": 90},
+        {"type": "text", "text": "Make yours", "font": "display", "size": 150, "slot": "middle",
+         "color": {"colors": ["#64d2ff", "#bf5af2"], "angle": 0}, "enter": {"preset": "zoom_in", "duration": 0.6},
+         "glow": {"color": "#7d7aff", "blur": 30, "opacity": 0.6}, "loop": "breathe", "sfx": "sfx:impact"}
+      ]
+    }
+  ]
+}

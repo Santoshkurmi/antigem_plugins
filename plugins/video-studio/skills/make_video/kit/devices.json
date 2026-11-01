@@ -1,0 +1,40 @@
+{
+  // Screens: browser window, phone, app window. "src" is a screenshot or screen recording image.
+  "browser_frame": {
+    "about": "Browser window showing a screenshot; `scroll` px scrolls the page down over `dur` seconds.",
+    "params": {"src": "screenshot.png", "url": "example.com", "w": 960, "h": 640, "scroll": 0, "dur": 3},
+    "layer": {"type": "group", "w": "{{w}}", "h": "{{h}}", "enter": {"preset": "pop", "from": 0.9}, "shadow": {"blur": 40, "dy": 24, "opacity": 0.4},
+      "mask": {"type": "shape", "kind": "rect", "w": "100%", "h": "100%", "radius": 22}, "layers": [
+      {"type": "shape", "kind": "rect", "w": "100%", "h": "100%", "fill": "#ffffff"},
+      {"type": "image", "src": "{{src}}", "w": "100%", "anchor": "top", "y": 70, "animate": {"y": [[0.4, 70], ["{{dur}}", "{{= 70 - scroll }}", "in_out_sine"]]}},
+      {"type": "shape", "kind": "rect", "w": "100%", "h": 70, "y": 35, "fill": "#e9e9ed"},
+      {"type": "shape", "kind": "circle", "size": 20, "x": 34, "y": 35, "fill": "#ff5f57"},
+      {"type": "shape", "kind": "circle", "size": 20, "x": 66, "y": 35, "fill": "#febc2e"},
+      {"type": "shape", "kind": "circle", "size": 20, "x": 98, "y": 35, "fill": "#28c840"},
+      {"type": "text", "text": "{{url}}", "font": "$font_body", "size": 26, "color": "#555555", "plate": {"color": "#ffffff", "padding": [1.2, 0.35], "radius": 0.6}, "y": 35}
+    ]}
+  },
+  "phone_frame": {
+    "about": "Phone mock-up with a screenshot/video frame on screen.",
+    "params": {"src": "screenshot.png", "h": 1100, "color": "#111111"},
+    "layer": {"type": "group", "w": 540, "h": 1100, "scale": 1, "enter": "slide_up", "shadow": {"blur": 50, "dy": 30, "opacity": 0.45}, "layers": [
+      {"type": "shape", "kind": "rect", "w": 540, "h": 1100, "radius": 80, "fill": "{{color}}"},
+      {"type": "image", "src": "{{src}}", "w": 500, "h": 1060, "fit": "cover", "radius": 62},
+      {"type": "shape", "kind": "rect", "w": 150, "h": 36, "y": 52, "radius": 18, "fill": "{{color}}"}
+    ]}
+  },
+  "app_window": {
+    "about": "Dark app/editor window with a title bar and an image inside (code, dashboards).",
+    "params": {"src": "screenshot.png", "title": "app", "w": 960, "h": 620},
+    "layer": {"type": "group", "w": "{{w}}", "h": "{{h}}", "enter": "rise", "shadow": {"blur": 40, "dy": 22, "opacity": 0.5},
+      "mask": {"type": "shape", "kind": "rect", "w": "100%", "h": "100%", "radius": 18}, "layers": [
+      {"type": "shape", "kind": "rect", "w": "100%", "h": "100%", "fill": "#1e1e24"},
+      {"type": "image", "src": "{{src}}", "w": "96%", "h": "86%", "fit": "contain", "y": "54%"},
+      {"type": "shape", "kind": "rect", "w": "100%", "h": 56, "y": 28, "fill": "#2b2b33"},
+      {"type": "shape", "kind": "circle", "size": 18, "x": 30, "y": 28, "fill": "#ff5f57"},
+      {"type": "shape", "kind": "circle", "size": 18, "x": 58, "y": 28, "fill": "#febc2e"},
+      {"type": "shape", "kind": "circle", "size": 18, "x": 86, "y": 28, "fill": "#28c840"},
+      {"type": "text", "text": "{{title}}", "font": "$font_mono", "size": 26, "color": "#a1a1aa", "y": 28}
+    ]}
+  }
+}

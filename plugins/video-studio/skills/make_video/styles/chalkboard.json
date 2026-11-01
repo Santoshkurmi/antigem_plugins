@@ -1,0 +1,27 @@
+{
+ "about": "Classroom chalkboard: chalk-white handwriting on green-black board, yellow chalk highlights.",
+ "theme": {
+  "bg": "#23302b",
+  "surface": "#2c3a34",
+  "text": "#eef2ee",
+  "muted": "#a9b5ad",
+  "accent": "#ffd166",
+  "accent2": "#ff8fa3",
+  "ink": "#23302b",
+  "line": "#eef2ee",
+  "font_display": "hand",
+  "font_body": "hand",
+  "font_hand": "hand"
+ },
+ "background": {
+  "texture": "blackboard"
+ },
+ "camera": "still",
+ "transition": "fade",
+ "captions": {
+  "style": "clean",
+  "font": "hand",
+  "stroke_width": 0,
+  "active_color": "#ffd166"
+ }
+}

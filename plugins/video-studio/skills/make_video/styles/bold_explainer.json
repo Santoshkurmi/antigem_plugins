@@ -1,0 +1,37 @@
+{
+ "about": "Bright faceless explainer: saturated flat colors, bold display type, white stickers, punchy pops.",
+ "theme": {
+  "bg": "#1e3a8a",
+  "surface": "#ffffff",
+  "text": "#ffffff",
+  "muted": "#c7d2fe",
+  "accent": "#facc15",
+  "accent2": "#fb7185",
+  "ink": "#0f172a",
+  "paper": "#ffffff",
+  "font_display": "display",
+  "font_body": "sans",
+  "font_hand": "hand"
+ },
+ "background": {
+  "colors": [
+   "#2563eb",
+   "#1e3a8a"
+  ],
+  "angle": 120
+ },
+ "camera": "handheld",
+ "transition": {
+  "type": "whip_left",
+  "duration": 0.28
+ },
+ "look": {
+  "saturation": 1.1,
+  "vignette": 0.25
+ },
+ "captions": {
+  "style": "pop",
+  "active_color": "#facc15",
+  "max_words": 3
+ }
+}

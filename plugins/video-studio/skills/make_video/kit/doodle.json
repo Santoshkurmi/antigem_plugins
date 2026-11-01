@@ -1,0 +1,50 @@
+{
+  // Hand-drawn / cartoon pieces (work best with style doodle or sticker).
+  "speech_bubble": {
+    "about": "Speech bubble with a tail pointing down-left (put it above-right of a character's head).",
+    "params": {"text": "Hello!", "size": 48, "w": 520, "h": 240, "fill": "#ffffff", "color": "#111111"},
+    "layer": {"type": "group", "w": "{{w}}", "h": "{{h}}", "enter": {"preset": "pop", "from": 0.5}, "loop": {"preset": "boil", "amp": 1, "fps": 6}, "layers": [
+      {"type": "shape", "kind": "polygon", "points": [["18%", "70%"], ["34%", "70%"], ["6%", "100%"]], "fill": "{{fill}}", "stroke": "{{color}}", "stroke_width": 6},
+      {"type": "shape", "kind": "ellipse", "w": "100%", "h": "82%", "y": "41%", "fill": "{{fill}}", "stroke": "{{color}}", "stroke_width": 6},
+      {"type": "shape", "kind": "polygon", "points": [["19%", "66%"], ["33%", "66%"], ["24%", "76%"]], "fill": "{{fill}}"},
+      {"type": "text", "text": "{{text}}", "font": "$font_hand", "size": "{{size}}", "color": "{{color}}", "y": "41%", "max_width": "78%", "max_height": "62%"}
+    ]}
+  },
+  "thought_bubble": {
+    "about": "Thought cloud with trailing dots toward the lower left.",
+    "params": {"text": "Hmm...", "size": 48, "w": 520, "h": 260, "fill": "#ffffff", "color": "#111111"},
+    "layer": {"type": "group", "w": "{{w}}", "h": "{{h}}", "enter": {"preset": "pop", "from": 0.5}, "loop": {"preset": "float", "amp": 6}, "layers": [
+      {"type": "shape", "kind": "circle", "size": 26, "x": "6%", "y": "95%", "fill": "{{fill}}", "stroke": "{{color}}", "stroke_width": 5},
+      {"type": "shape", "kind": "circle", "size": 40, "x": "14%", "y": "82%", "fill": "{{fill}}", "stroke": "{{color}}", "stroke_width": 5},
+      {"type": "shape", "kind": "ellipse", "w": "88%", "h": "74%", "x": "54%", "y": "38%", "fill": "{{fill}}", "stroke": "{{color}}", "stroke_width": 6, "rough": 6},
+      {"type": "text", "text": "{{text}}", "font": "$font_hand", "size": "{{size}}", "color": "{{color}}", "x": "54%", "y": "38%", "max_width": "70%", "max_height": "55%"}
+    ]}
+  },
+  "sticky_note": {
+    "about": "Yellow sticky note with handwritten text, slightly tilted.",
+    "params": {"text": "Remember this!", "color": "#ffe66d", "rotation": 4, "size": 54},
+    "layer": {"type": "group", "w": 420, "h": 420, "rotation": "{{rotation}}", "enter": "drop", "shadow": {"blur": 18, "dy": 12, "opacity": 0.35},
+      "sfx": {"src": "sfx:paper", "volume": 0.4}, "layers": [
+      {"type": "shape", "kind": "rect", "w": 420, "h": 420, "fill": {"colors": ["{{color}}", "{{color}}", "#f1d54a"], "angle": 90}},
+      {"type": "text", "text": "{{text}}", "font": "$font_hand", "size": "{{size}}", "color": "#2b2b2b", "max_width": 360, "max_height": 340}
+    ]}
+  },
+  "idea_bulb": {
+    "about": "Light-bulb 'idea!' icon with rays that pop out.",
+    "params": {"size": 220, "color": "#ffd60a", "ink": "#111111"},
+    "layer": {"type": "group", "w": "{{size}}", "h": "{{size}}", "enter": "pop", "sfx": {"src": "sfx:ding", "volume": 0.4}, "layers": [
+      {"type": "shape", "kind": "star", "count": 12, "inner": 0.8, "size": "{{size}}", "fill": "{{color}}", "opacity": 0.35, "loop": {"preset": "spin", "period": 10}},
+      {"type": "shape", "kind": "circle", "size": "55%", "y": "42%", "fill": "{{color}}", "stroke": "{{ink}}", "stroke_width": 6, "glow": {"color": "{{color}}", "blur": 30}},
+      {"type": "shape", "kind": "rect", "w": "26%", "h": "16%", "y": "76%", "radius": 6, "fill": "#bbbbbb", "stroke": "{{ink}}", "stroke_width": 5}
+    ]}
+  },
+  "doodle_heart": {
+    "about": "Hand-drawn heart that draws itself and beats.",
+    "params": {"size": 220, "color": "#ff375f"},
+    "layer": {"type": "group", "w": "{{size}}", "h": "{{size}}", "loop": {"preset": "heartbeat", "amp": 0.08}, "layers": [
+      {"type": "shape", "kind": "polygon", "curve": true, "rough": 2, "fill": "{{color}}", "stroke": "#111111", "stroke_width": 6,
+       "points": [["50%", "28%"], ["70%", "8%"], ["94%", "22%"], ["90%", "50%"], ["50%", "92%"], ["10%", "50%"], ["6%", "22%"], ["30%", "8%"], ["50%", "28%"]],
+       "animate": {"progress": [[0, 0], [0.6, 1]]}}
+    ]}
+  }
+}

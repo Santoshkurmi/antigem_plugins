@@ -1,0 +1,198 @@
+{
+ "note": "Travel story: map with route and pins, location tags, photo cards with slow moves.",
+ "style": "cinematic",
+ "aspect": "9:16",
+ "scenes": [
+  {
+   "id": "route",
+   "duration": 5,
+   "camera": "slow_push",
+   "layers": [
+    {
+     "type": "image",
+     "src": "placeholder_map.jpg",
+     "slot": "full",
+     "fit": "cover",
+     "filter": {
+      "saturation": 0.8
+     }
+    },
+    {
+     "type": "shape",
+     "kind": "path",
+     "points": [
+      [
+       200,
+       1450
+      ],
+      [
+       420,
+       1180
+      ],
+      [
+       700,
+       1050
+      ],
+      [
+       860,
+       700
+      ],
+      [
+       760,
+       420
+      ]
+     ],
+     "curve": true,
+     "stroke": "$accent",
+     "stroke_width": 12,
+     "dash": [
+      28,
+      14
+     ],
+     "at": 0.4,
+     "animate": {
+      "progress": [
+       [
+        0,
+        0
+       ],
+       [
+        2.6,
+        1,
+        "in_out_sine"
+       ]
+      ]
+     }
+    },
+    {
+     "type": "shape",
+     "kind": "circle",
+     "size": 40,
+     "fill": "$accent",
+     "stroke": "#ffffff",
+     "stroke_width": 6,
+     "at": 0.4,
+     "animate": {
+      "x": [
+       [
+        0,
+        200
+       ],
+       [
+        0.65,
+        420
+       ],
+       [
+        1.3,
+        700
+       ],
+       [
+        1.95,
+        860
+       ],
+       [
+        2.6,
+        760
+       ]
+      ],
+      "y": [
+       [
+        0,
+        1450
+       ],
+       [
+        0.65,
+        1180
+       ],
+       [
+        1.3,
+        1050
+       ],
+       [
+        1.95,
+        700
+       ],
+       [
+        2.6,
+        420
+       ]
+      ]
+     }
+    },
+    {
+     "use": "kit.map_pin",
+     "with": {
+      "label": "Day 1",
+      "color": "$accent2"
+     },
+     "x": 200,
+     "y": 1450,
+     "at": 0.1
+    },
+    {
+     "use": "kit.map_pin",
+     "with": {
+      "label": "Day 6",
+      "color": "$accent2"
+     },
+     "x": 760,
+     "y": 420,
+     "at": 3.0
+    },
+    {
+     "use": "kit.location_tag",
+     "with": {
+      "place": "Annapurna Circuit",
+      "date": "12 days · 230 km"
+     },
+     "x": "8%",
+     "y": "9%",
+     "at": 0.6
+    }
+   ]
+  },
+  {
+   "id": "day1",
+   "duration": 4.5,
+   "transition": {
+    "type": "dissolve",
+    "duration": 0.6
+   },
+   "background": {
+    "image": "placeholder_photo.jpg",
+    "motion": {
+     "preset": "ken_burns",
+     "to": 1.2,
+     "pan": [
+      -40,
+      0
+     ]
+    }
+   },
+   "layers": [
+    {
+     "use": "kit.location_tag",
+     "with": {
+      "place": "Besisahar",
+      "date": "Day 1 · 760 m"
+     },
+     "x": "8%",
+     "y": "80%",
+     "at": 0.5
+    },
+    {
+     "use": "kit.polaroid",
+     "with": {
+      "src": "placeholder_portrait.jpg",
+      "caption": "met Arjun",
+      "rotation": 5
+     },
+     "x": "70%",
+     "y": "30%",
+     "scale": 0.7,
+     "at": 1.4
+    }
+   ]
+  }
+ ]
+}

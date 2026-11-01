@@ -1,0 +1,56 @@
+{
+  // Social media UI mock-ups (generic, not any brand's exact design).
+  "post_card": {
+    "about": "Social post card: avatar, name, handle, text, like counter that counts up. Avatar optional (src).",
+    "params": {"name": "Display Name", "handle": "@handle", "text": "Post text goes here.", "likes": 12400, "initial": "A", "color": "$accent"},
+    "layer": {"type": "group", "w": 920, "h": 520, "enter": {"preset": "pop", "from": 0.85}, "shadow": {"blur": 40, "dy": 20, "opacity": 0.35}, "layers": [
+      {"type": "shape", "kind": "rect", "w": 920, "h": 520, "radius": 36, "fill": "#ffffff"},
+      {"type": "shape", "kind": "circle", "size": 110, "x": 100, "y": 100, "fill": "{{color}}"},
+      {"type": "text", "text": "{{initial}}", "font": "$font_display", "size": 60, "color": "#ffffff", "x": 100, "y": 100},
+      {"type": "text", "text": "{{name}}", "font": "$font_body", "size": 44, "color": "#111111", "align": "left", "anchor": "left", "x": 180, "y": 78, "max_width": 680},
+      {"type": "text", "text": "{{handle}}", "font": "$font_body", "size": 34, "color": "#71767b", "align": "left", "anchor": "left", "x": 180, "y": 126},
+      {"type": "text", "text": "{{text}}", "font": "$font_body", "size": 46, "color": "#111111", "align": "left", "anchor": "top_left", "x": 50, "y": 190,
+       "max_width": 820, "max_height": 230, "line_height": 1.2, "at": 0.2, "reveal": {"by": "word", "preset": "fade", "stagger": 0.03}},
+      {"type": "shape", "kind": "polygon", "curve": true, "fill": "#f91880", "x": 70, "y": 465, "at": 0.6, "enter": "pop",
+       "points": [[0, 12], [10, 0], [22, 4], [24, 16], [12, 30], [0, 40], [-12, 30], [-24, 16], [-22, 4], [-10, 0], [0, 12]]},
+      {"type": "counter", "from": 0, "to": "{{likes}}", "format": "{:,.0f}", "font": "$font_body", "size": 36, "color": "#536471", "align": "left",
+       "anchor": "left", "x": 110, "y": 465, "at": 0.6, "count": {"duration": 1.4}}
+    ]}
+  },
+  "comment_bubble": {
+    "about": "Viewer comment card (avatar letter, name, comment) — 'you asked' moments.",
+    "params": {"name": "viewer123", "text": "How does this work??", "initial": "V", "color": "#5e5ce6"},
+    "layer": {"type": "group", "w": 900, "h": 230, "enter": "slide_up", "shadow": {"blur": 24, "dy": 12, "opacity": 0.3}, "layers": [
+      {"type": "shape", "kind": "rect", "w": 900, "h": 230, "radius": 28, "fill": "#ffffff"},
+      {"type": "shape", "kind": "circle", "size": 90, "x": 80, "y": 80, "fill": "{{color}}"},
+      {"type": "text", "text": "{{initial}}", "font": "$font_display", "size": 48, "color": "#ffffff", "x": 80, "y": 80},
+      {"type": "text", "text": "{{name}}", "font": "$font_body", "size": 32, "color": "#606060", "align": "left", "anchor": "left", "x": 150, "y": 58},
+      {"type": "text", "text": "{{text}}", "font": "$font_body", "size": 42, "color": "#111111", "align": "left", "anchor": "top_left", "x": 150, "y": 90,
+       "max_width": 710, "max_height": 120}
+    ]}
+  },
+  "notification": {
+    "about": "Phone notification banner sliding down (app name, title, message).",
+    "params": {"app": "MESSAGES", "title": "Mom", "text": "Call me when you see this", "color": "#34c759"},
+    "layer": {"type": "group", "w": 960, "h": 210, "camera": false, "enter": {"preset": "slide_down", "distance": 260}, "exit": {"preset": "slide_up", "distance": 260},
+      "sfx": {"src": "sfx:ding", "volume": 0.4}, "layers": [
+      {"type": "shape", "kind": "rect", "w": 960, "h": 210, "radius": 44, "fill": "#f2f2f7f0"},
+      {"type": "shape", "kind": "rect", "w": 60, "h": 60, "radius": 14, "x": 70, "y": 62, "fill": "{{color}}"},
+      {"type": "text", "text": "{{app}}", "font": "$font_body", "size": 28, "color": "#6e6e73", "align": "left", "anchor": "left", "x": 118, "y": 62},
+      {"type": "text", "text": "{{title}}", "font": "$font_body", "size": 40, "color": "#000000", "align": "left", "anchor": "left", "x": 44, "y": 122, "max_width": 870},
+      {"type": "text", "text": "{{text}}", "font": "$font_body", "size": 36, "color": "#1c1c1e", "align": "left", "anchor": "left", "x": 44, "y": 168, "max_width": 870, "max_lines": 1}
+    ]}
+  },
+  "chat_left": {
+    "about": "Incoming chat bubble (grey, left). Stack several for a conversation. Anchored left.",
+    "params": {"text": "hey, you up?", "size": 44},
+    "layer": {"type": "text", "text": "{{text}}", "font": "$font_body", "size": "{{size}}", "color": "#111111", "align": "left", "anchor": "left", "max_width": 640,
+              "plate": {"color": "#e9e9eb", "padding": [0.6, 0.4], "radius": 0.8}, "enter": {"preset": "pop", "from": 0.6}, "sfx": {"src": "sfx:blip8", "volume": 0.3}}
+  },
+  "chat_right": {
+    "about": "Outgoing chat bubble (blue, right). Anchored right.",
+    "params": {"text": "on my way", "size": 44, "color": "#0a84ff"},
+    "layer": {"type": "text", "text": "{{text}}", "font": "$font_body", "size": "{{size}}", "color": "#ffffff", "align": "left", "anchor": "right", "max_width": 640,
+              "plate": {"color": "{{color}}", "padding": [0.6, 0.4], "radius": 0.8}, "enter": {"preset": "pop", "from": 0.6}, "sfx": {"src": "sfx:pop", "volume": 0.3}}
+  }
+}

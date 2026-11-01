@@ -1,0 +1,173 @@
+{
+ "note": "Whiteboard / chalkboard explainer: hand lettering, rough draw-on shapes, boiling lines, a stick figure.",
+ "style": "chalkboard",
+ "aspect": "16:9",
+ "scenes": [
+  {
+   "id": "idea",
+   "duration": 5,
+   "layers": [
+    {
+     "type": "text",
+     "text": "How *compound interest* works",
+     "font": "$font_display",
+     "size": 100,
+     "slot": "title",
+     "highlight": "$accent",
+     "reveal": {
+      "by": "word",
+      "preset": "appear",
+      "stagger": 0.12
+     },
+     "sfx": "sfx:scribble"
+    },
+    {
+     "type": "stickman",
+     "pose": "present",
+     "expression": "happy",
+     "color": "$line",
+     "size": 520,
+     "x": "18%",
+     "y": "92%",
+     "rough": 2,
+     "loop": "boil",
+     "talk": [
+      [
+       0.5,
+       3.5
+      ]
+     ]
+    },
+    {
+     "type": "shape",
+     "kind": "rect",
+     "w": 160,
+     "h": 120,
+     "x": "42%",
+     "y": "70%",
+     "fill": null,
+     "stroke": "$line",
+     "stroke_width": 6,
+     "rough": 3,
+     "at": 0.8,
+     "animate": {
+      "progress": [
+       [
+        0,
+        0
+       ],
+       [
+        0.4,
+        1
+       ]
+      ]
+     }
+    },
+    {
+     "type": "shape",
+     "kind": "rect",
+     "w": 160,
+     "h": 220,
+     "x": "58%",
+     "y": "65%",
+     "fill": null,
+     "stroke": "$line",
+     "stroke_width": 6,
+     "rough": 3,
+     "at": 1.4,
+     "animate": {
+      "progress": [
+       [
+        0,
+        0
+       ],
+       [
+        0.4,
+        1
+       ]
+      ]
+     }
+    },
+    {
+     "type": "shape",
+     "kind": "rect",
+     "w": 160,
+     "h": 400,
+     "x": "74%",
+     "y": "56%",
+     "fill": null,
+     "stroke": "$accent",
+     "stroke_width": 7,
+     "rough": 3,
+     "at": 2.0,
+     "animate": {
+      "progress": [
+       [
+        0,
+        0
+       ],
+       [
+        0.5,
+        1
+       ]
+      ]
+     }
+    },
+    {
+     "use": "kit.arrow_doodle",
+     "with": {
+      "x1": 760,
+      "y1": 600,
+      "x2": 1450,
+      "y2": 320,
+      "bend_x": 1050,
+      "bend_y": 330,
+      "color": "$accent"
+     },
+     "at": 2.8
+    },
+    {
+     "use": "kit.idea_bulb",
+     "with": {
+      "size": 200,
+      "color": "$accent",
+      "ink": "#eef2ee"
+     },
+     "x": "88%",
+     "y": "26%",
+     "at": 3.4
+    }
+   ]
+  },
+  {
+   "id": "rule",
+   "duration": 4,
+   "transition": "fade",
+   "layers": [
+    {
+     "type": "text",
+     "text": "Money × time = *magic*",
+     "font": "$font_display",
+     "size": 140,
+     "slot": "middle",
+     "highlight": "$accent",
+     "reveal": {
+      "by": "word",
+      "preset": "appear",
+      "stagger": 0.2
+     }
+    },
+    {
+     "use": "kit.underline_scribble",
+     "with": {
+      "w": 520,
+      "color": "$accent"
+     },
+     "x": "62%",
+     "y": "60%",
+     "at": 1.0
+    }
+   ]
+  }
+ ]
+}

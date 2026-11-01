@@ -1,0 +1,114 @@
+{
+ "note": "Top-3 countdown built from one scene template (defs + use).",
+ "style": "bold_explainer",
+ "aspect": "9:16",
+ "defs": {
+  "rank": {
+   "params": {
+    "n": "#3",
+    "title": "Title",
+    "fact": "Fact",
+    "img": "placeholder_photo.jpg"
+   },
+   "scene": {
+    "duration": 3.6,
+    "transition": {
+     "type": "whip_left",
+     "duration": 0.28
+    },
+    "background": {
+     "image": "{{img}}",
+     "filter": {
+      "brightness": 0.45
+     },
+     "motion": "ken_burns"
+    },
+    "layers": [
+     {
+      "use": "kit.countdown_number",
+      "with": {
+       "number": "{{n}}"
+      },
+      "slot": "top",
+      "y": "22%"
+     },
+     {
+      "type": "text",
+      "text": "{{title}}",
+      "font": "$font_display",
+      "size": 120,
+      "uppercase": true,
+      "slot": "middle",
+      "reveal": {
+       "by": "word",
+       "preset": "slide_up",
+       "stagger": 0.08
+      },
+      "at": 0.4
+     },
+     {
+      "type": "text",
+      "text": "{{fact}}",
+      "font": "$font_body",
+      "size": 48,
+      "y": "64%",
+      "max_width": "80%",
+      "at": 1.2,
+      "enter": "rise"
+     }
+    ]
+   }
+  }
+ },
+ "scenes": [
+  {
+   "id": "hook",
+   "duration": 2.4,
+   "layers": [
+    {
+     "type": "text",
+     "text": "3 places you *must* see",
+     "font": "$font_display",
+     "size": 112,
+     "slot": "middle",
+     "highlight": "$accent",
+     "reveal": {
+      "by": "word",
+      "preset": "pop",
+      "stagger": 0.08
+     },
+     "sfx": "sfx:riser",
+     "max_width": 840
+    }
+   ]
+  },
+  {
+   "use": "rank",
+   "with": {
+    "n": "#3",
+    "title": "Salt flats",
+    "fact": "A mirror the size of a city after rain"
+   },
+   "id": "r3"
+  },
+  {
+   "use": "rank",
+   "with": {
+    "n": "#2",
+    "title": "Night markets",
+    "fact": "Two thousand stalls, open till dawn",
+    "img": "placeholder_portrait.jpg"
+   },
+   "id": "r2"
+  },
+  {
+   "use": "rank",
+   "with": {
+    "n": "#1",
+    "title": "Glacier caves",
+    "fact": "Blue ice that is 10,000 years old"
+   },
+   "id": "r1"
+  }
+ ]
+}

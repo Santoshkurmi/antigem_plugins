@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.vs_cache/
+*.part.mp4
+*.part.webm
+.DS_Store

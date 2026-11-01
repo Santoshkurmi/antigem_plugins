@@ -1,0 +1,30 @@
+{
+ "about": "Bold sticker explainer: dotted paper, chunky rounded type, cut-outs with white borders, pop captions.",
+ "theme": {
+  "bg": "#f8f6ef",
+  "surface": "#ffffff",
+  "text": "#1d1d1f",
+  "muted": "#6e6e73",
+  "accent": "#ff5a5f",
+  "accent2": "#00a6ed",
+  "ink": "#1d1d1f",
+  "paper": "#ffffff",
+  "font_display": "rounded",
+  "font_body": "rounded",
+  "font_hand": "hand"
+ },
+ "background": {
+  "texture": "dots"
+ },
+ "camera": "handheld",
+ "transition": "cut",
+ "look": {
+  "saturation": 1.1
+ },
+ "captions": {
+  "style": "pop",
+  "font": "rounded",
+  "active_color": "#ff5a5f",
+  "stroke_width": 8
+ }
+}

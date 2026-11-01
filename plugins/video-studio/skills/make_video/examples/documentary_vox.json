@@ -1,0 +1,227 @@
+{
+ "note": "Vox-style documentary: chapter kicker, collage of prints, a map with a drawn route and pins, an animated timeline.",
+ "style": "documentary",
+ "aspect": "16:9",
+ "scenes": [
+  {
+   "id": "open",
+   "duration": 5,
+   "layout": "hero",
+   "layers": [
+    {
+     "use": "kit.kicker_index",
+     "with": {
+      "number": "01",
+      "text": "How it started"
+     },
+     "slot": "tag",
+     "x": "4%"
+    },
+    {
+     "type": "text",
+     "text": "A city built on *salt*",
+     "font": "$font_display",
+     "size": 120,
+     "slot": "title",
+     "align": "left",
+     "anchor": "left",
+     "x": "9%",
+     "highlight": "$accent",
+     "reveal": {
+      "by": "word",
+      "preset": "rise",
+      "stagger": 0.08
+     }
+    },
+    {
+     "use": "kit.print_photo",
+     "with": {
+      "src": "placeholder_photo.jpg",
+      "w": 720,
+      "rotation": -3
+     },
+     "x": "70%",
+     "y": "40%",
+     "at": 0.6,
+     "sfx": "sfx:paper"
+    },
+    {
+     "use": "kit.polaroid",
+     "with": {
+      "src": "placeholder_portrait.jpg",
+      "caption": "the founder",
+      "rotation": 6
+     },
+     "x": "84%",
+     "y": "64%",
+     "scale": 0.7,
+     "at": 1.4
+    },
+    {
+     "use": "kit.stamp_rubber",
+     "with": {
+      "text": "1846"
+     },
+     "x": "56%",
+     "y": "74%",
+     "at": 2.4
+    }
+   ]
+  },
+  {
+   "id": "map",
+   "duration": 5,
+   "transition": "cut",
+   "camera": "slow_push",
+   "layers": [
+    {
+     "type": "image",
+     "src": "placeholder_map.jpg",
+     "slot": "full",
+     "fit": "cover",
+     "filter": {
+      "sepia": 0.4,
+      "saturation": 0.8
+     }
+    },
+    {
+     "type": "shape",
+     "kind": "path",
+     "points": [
+      [
+       300,
+       820
+      ],
+      [
+       620,
+       640
+      ],
+      [
+       980,
+       600
+      ],
+      [
+       1380,
+       360
+      ]
+     ],
+     "curve": true,
+     "stroke": "$accent",
+     "stroke_width": 12,
+     "dash": [
+      30,
+      16
+     ],
+     "at": 0.5,
+     "animate": {
+      "progress": [
+       [
+        0,
+        0
+       ],
+       [
+        2.4,
+        1,
+        "in_out_sine"
+       ]
+      ]
+     },
+     "sfx": "sfx:scribble"
+    },
+    {
+     "use": "kit.map_pin",
+     "with": {
+      "label": "Port",
+      "color": "$accent"
+     },
+     "x": 300,
+     "y": 820,
+     "at": 0.2
+    },
+    {
+     "use": "kit.map_pin",
+     "with": {
+      "label": "Mines",
+      "color": "$accent"
+     },
+     "x": 1380,
+     "y": 360,
+     "at": 2.9
+    },
+    {
+     "use": "kit.kicker_chip",
+     "with": {
+      "text": "300 km of salt road"
+     },
+     "x": "22%",
+     "y": "12%",
+     "at": 1.5
+    }
+   ]
+  },
+  {
+   "id": "timeline",
+   "duration": 5.5,
+   "transition": "cut",
+   "layout": "timeline",
+   "layers": [
+    {
+     "type": "text",
+     "text": "Three turning points",
+     "font": "$font_display",
+     "size": 96,
+     "slot": "title"
+    },
+    {
+     "use": "kit.timeline_line",
+     "with": {
+      "y": 600,
+      "x1": 140,
+      "x2": 1780,
+      "dur": 1.6
+     }
+    },
+    {
+     "use": "kit.timeline_point",
+     "with": {
+      "year": "1846",
+      "text": "Salt found"
+     },
+     "x": 420,
+     "y": 530,
+     "at": 0.5
+    },
+    {
+     "use": "kit.timeline_point",
+     "with": {
+      "year": "1902",
+      "text": "Railway arrives"
+     },
+     "x": 960,
+     "y": 530,
+     "at": 1.1
+    },
+    {
+     "use": "kit.timeline_point",
+     "with": {
+      "year": "1979",
+      "text": "The mine closes"
+     },
+     "x": 1500,
+     "y": 530,
+     "at": 1.7
+    },
+    {
+     "use": "kit.circle_scribble",
+     "with": {
+      "w": 360,
+      "h": 300
+     },
+     "x": 1500,
+     "y": 560,
+     "at": 2.6
+    }
+   ]
+  }
+ ]
+}

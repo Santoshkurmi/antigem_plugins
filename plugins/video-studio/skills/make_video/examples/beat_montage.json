@@ -1,0 +1,177 @@
+{
+ "note": "Beat-synced montage. Add your track: \"music\": {\"src\": \"song.mp3\", \"beats\": \"auto\"}. Here the beat grid comes from bpm alone (silent).",
+ "style": "neon",
+ "aspect": "9:16",
+ "audio": {
+  "music": {
+   "bpm": 120,
+   "first_beat": 0.1
+  }
+ },
+ "scenes": [
+  {
+   "id": "intro",
+   "until": "b:5",
+   "camera": {
+    "preset": "still",
+    "punches": [
+     {
+      "at": "b:2"
+     },
+     {
+      "at": "b:3"
+     },
+     {
+      "at": "b:4"
+     }
+    ]
+   },
+   "layers": [
+    {
+     "type": "text",
+     "text": "3",
+     "font": "$font_display",
+     "size": 400,
+     "color": "$accent",
+     "at": "b:1",
+     "until": "b:2",
+     "enter": "stamp",
+     "glow": true,
+     "sfx": "sfx:hit"
+    },
+    {
+     "type": "text",
+     "text": "2",
+     "font": "$font_display",
+     "size": 400,
+     "color": "$accent2",
+     "at": "b:2",
+     "until": "b:3",
+     "enter": "stamp",
+     "glow": true,
+     "sfx": "sfx:hit"
+    },
+    {
+     "type": "text",
+     "text": "1",
+     "font": "$font_display",
+     "size": 400,
+     "color": "$accent",
+     "at": "b:3",
+     "until": "b:4",
+     "enter": "stamp",
+     "glow": true,
+     "sfx": "sfx:hit"
+    },
+    {
+     "type": "text",
+     "text": "GO",
+     "font": "$font_display",
+     "size": 300,
+     "color": "#ffffff",
+     "at": "b:4",
+     "enter": "zoom_out",
+     "glow": true,
+     "sfx": "sfx:impact"
+    }
+   ]
+  },
+  {
+   "id": "flash1",
+   "until": "nb:2",
+   "transition": "flash",
+   "background": {
+    "image": "placeholder_photo.jpg",
+    "motion": {
+     "preset": "ken_burns",
+     "to": 1.3
+    }
+   },
+   "layers": [
+    {
+     "type": "text",
+     "text": "SUMMER",
+     "font": "$font_display",
+     "size": 220,
+     "y": "45%",
+     "enter": "zoom_out",
+     "glow": {
+      "color": "$accent2"
+     }
+    }
+   ]
+  },
+  {
+   "id": "flash2",
+   "until": "nb:2",
+   "transition": "cut",
+   "background": {
+    "image": "placeholder_portrait.jpg",
+    "motion": {
+     "preset": "ken_burns",
+     "from": 1.2,
+     "to": 1.0
+    }
+   },
+   "layers": [
+    {
+     "type": "text",
+     "text": "NIGHTS",
+     "font": "$font_display",
+     "size": 220,
+     "y": "55%",
+     "enter": "zoom_out",
+     "glow": {
+      "color": "$accent"
+     }
+    }
+   ]
+  },
+  {
+   "id": "flash3",
+   "until": "nb:4",
+   "transition": "cut",
+   "camera": {
+    "preset": "still",
+    "punches": [
+     {
+      "at": "nb:1"
+     },
+     {
+      "at": "nb:2"
+     },
+     {
+      "at": "nb:3"
+     }
+    ]
+   },
+   "layers": [
+    {
+     "type": "particles",
+     "kind": "sparks",
+     "count": 80
+    },
+    {
+     "type": "stickman",
+     "action": "dance",
+     "size": 760,
+     "y": "88%",
+     "color": "$accent",
+     "glow": {
+      "color": "$accent",
+      "blur": 20
+     }
+    },
+    {
+     "type": "text",
+     "text": "ON REPEAT",
+     "font": "$font_display",
+     "size": 150,
+     "y": "20%",
+     "at": "nb:1",
+     "enter": "glitch"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,90 @@
+{
+  // TV / news / YouTube overlays.
+  "lower_third_bar": {
+    "about": "Name + role strap: accent bar, dark panel wiping in, two lines of text. Use slot lower_third.",
+    "params": {"name": "Name Surname", "role": "Role / title", "color": "$accent"},
+    "layer": {"type": "group", "slot": "lower_third", "exit": {"preset": "fade", "duration": 0.3}, "layers": [
+      {"type": "shape", "id": "bar", "kind": "rect", "w": 14, "h": 150, "x": 7, "y": "50%", "fill": "{{color}}", "enter": "wipe_down"},
+      {"type": "shape", "id": "panel", "kind": "rect", "w": 780, "h": 150, "x": 24, "y": "50%", "anchor": "left", "fill": "#000000cc", "at": "with:bar+0.15", "enter": "wipe_right"},
+      {"type": "text", "text": "{{name}}", "font": "$font_body", "size": 58, "color": "#ffffff", "align": "left", "anchor": "left", "x": 58, "y": "50%-28",
+       "max_width": 720, "at": "with:panel+0.2", "enter": "rise"},
+      {"type": "text", "text": "{{role}}", "font": "$font_body", "size": 36, "color": "#c7c7cc", "align": "left", "anchor": "left", "x": 58, "y": "50%+32",
+       "max_width": 720, "at": "with:panel+0.3", "enter": "rise"}
+    ]}
+  },
+  "lower_third_clean": {
+    "about": "Minimal lower third: name, thin accent line, role. No panel. Anchored left.",
+    "params": {"name": "Name Surname", "role": "Role", "color": "$accent", "text_color": "$text"},
+    "layer": {"type": "group", "w": 800, "h": 170, "anchor": "left", "layers": [
+      {"type": "text", "text": "{{name}}", "font": "$font_display", "size": 64, "color": "{{text_color}}", "align": "left", "anchor": "left", "x": 0, "y": 50, "enter": "slide_up"},
+      {"type": "shape", "kind": "rect", "w": 260, "h": 5, "x": 0, "y": 98, "anchor": "left", "fill": "{{color}}", "at": 0.15, "enter": "wipe_right"},
+      {"type": "text", "text": "{{role}}", "font": "$font_body", "size": 34, "color": "$muted", "align": "left", "anchor": "left", "x": 0, "y": 135, "at": 0.25, "enter": "fade"}
+    ]}
+  },
+  "breaking_news": {
+    "about": "News banner: red BREAKING tag + white headline bar + scrolling ticker. Full width, put near the bottom (y ~ 78%).",
+    "params": {"label": "BREAKING", "headline": "Headline goes here", "ticker": "More news • more news • more news", "color": "#d62828"},
+    "layer": {"type": "group", "w": "100%", "h": 230, "camera": false, "layers": [
+      {"type": "shape", "kind": "rect", "w": "100%", "h": 120, "y": 70, "fill": "#ffffff", "enter": "wipe_right"},
+      {"type": "text", "text": "{{label}}", "font": "$font_display", "size": 56, "color": "#ffffff", "uppercase": true, "x": 40, "y": 70, "anchor": "left",
+       "plate": {"color": "{{color}}", "padding": [0.4, 0.42], "radius": 0}, "enter": "slide_right", "loop": {"preset": "flicker", "amp": 0.15, "freq": 2}},
+      {"type": "text", "text": "{{headline}}", "font": "$font_display", "size": 54, "color": "#111111", "align": "left", "anchor": "left", "x": 330, "y": 70,
+       "max_width": 1500, "max_lines": 1, "at": 0.3, "enter": "slide_up"},
+      {"type": "shape", "kind": "rect", "w": "100%", "h": 60, "y": 160, "fill": "#111111", "at": 0.2, "enter": "wipe_right"},
+      {"type": "text", "text": "{{ticker}}", "font": "$font_body", "size": 32, "color": "#ffffff", "x": "100%", "y": 160, "anchor": "left", "align": "left",
+       "max_width": 6000, "at": 0.4, "loop": {"preset": "drift", "speed_x": -170}}
+    ]}
+  },
+  "live_badge": {
+    "about": "LIVE badge with blinking dot (corner).",
+    "params": {"text": "LIVE", "color": "#ff3b30"},
+    "layer": {"type": "group", "w": 200, "h": 70, "camera": false, "enter": "pop", "layers": [
+      {"type": "shape", "kind": "rect", "w": 200, "h": 70, "radius": 12, "fill": "#000000b0"},
+      {"type": "shape", "kind": "circle", "size": 24, "x": 40, "y": 35, "fill": "{{color}}", "loop": {"preset": "flicker", "amp": 0.9, "freq": 2}},
+      {"type": "text", "text": "{{text}}", "font": "$font_display", "size": 40, "color": "#ffffff", "x": 118, "y": 35}
+    ]}
+  },
+  "rec_overlay": {
+    "about": "Camcorder overlay: blinking REC, corner brackets, timestamp text (found footage, vlogs, crime reconstruction). Full frame.",
+    "params": {"stamp": "PLAY ▶  00:12:47", "date": "OCT 14 1999"},
+    "layer": {"type": "group", "slot": "full", "camera": false, "layers": [
+      {"type": "shape", "kind": "circle", "size": 34, "x": "9%", "y": "7%", "fill": "#ff3b30", "loop": {"preset": "flicker", "amp": 1, "freq": 1.5}},
+      {"type": "text", "text": "REC", "font": "$font_mono", "size": 44, "color": "#ffffff", "x": "13%", "y": "7%", "anchor": "left"},
+      {"type": "text", "text": "{{stamp}}", "font": "$font_mono", "size": 36, "color": "#ffffff", "x": "94%", "y": "7%", "anchor": "right", "align": "right"},
+      {"type": "text", "text": "{{date}}", "font": "$font_mono", "size": 36, "color": "#ffffff", "x": "94%", "y": "88%", "anchor": "right", "align": "right"},
+      {"type": "shape", "kind": "path", "points": [["5%", "15%"], ["5%", "4%"], ["12%", "4%"]], "stroke": "#ffffff", "stroke_width": 5, "cap": "butt"},
+      {"type": "shape", "kind": "path", "points": [["88%", "4%"], ["95%", "4%"], ["95%", "15%"]], "stroke": "#ffffff", "stroke_width": 5, "cap": "butt"},
+      {"type": "shape", "kind": "path", "points": [["5%", "85%"], ["5%", "94%"], ["12%", "94%"]], "stroke": "#ffffff", "stroke_width": 5, "cap": "butt"},
+      {"type": "shape", "kind": "path", "points": [["88%", "94%"], ["95%", "94%"], ["95%", "85%"]], "stroke": "#ffffff", "stroke_width": 5, "cap": "butt"}
+    ]}
+  },
+  "subscribe_button": {
+    "about": "YouTube-style subscribe: button pops, a cursor clicks it, it turns grey 'SUBSCRIBED' with a bell.",
+    "params": {"click": 0.9},
+    "layer": {"type": "group", "w": 560, "h": 220, "camera": false, "enter": "pop", "exit": "fade", "layers": [
+      {"type": "text", "text": "SUBSCRIBE", "font": "$font_body", "size": 48, "color": "#ffffff", "plate": {"color": "#ff0033", "padding": [0.8, 0.45], "radius": 0.3},
+       "y": 90, "until": "{{click}}"},
+      {"type": "text", "text": "SUBSCRIBED", "font": "$font_body", "size": 48, "color": "#606060", "plate": {"color": "#e5e5e5", "padding": [0.8, 0.45], "radius": 0.3},
+       "y": 90, "at": "{{click}}", "enter": {"preset": "pop", "from": 0.8, "duration": 0.3}, "sfx": {"src": "sfx:click", "volume": 0.7}},
+      {"type": "shape", "kind": "polygon", "points": [[0, 0], [0, 70], [18, 54], [32, 84], [44, 78], [30, 50], [54, 50]], "fill": "#ffffff", "stroke": "#000000", "stroke_width": 4,
+       "animate": {"x": [[0, 600], ["{{click}}", 330, "out_cubic"]], "y": [[0, 260], ["{{click}}", 120, "out_cubic"]], "scale": [["{{click}}", 1], ["{{= click + 0.06 }}", 0.8], ["{{= click + 0.18 }}", 1]]}}
+    ]}
+  },
+  "location_tag": {
+    "about": "Place + date tag with a map-pin icon (travel, documentary). Anchored left.",
+    "params": {"place": "Kathmandu, Nepal", "date": "March 2024", "color": "$accent"},
+    "layer": {"type": "group", "w": 800, "h": 120, "anchor": "left", "enter": "slide_right", "layers": [
+      {"type": "shape", "kind": "circle", "size": 44, "x": 30, "y": 42, "fill": "{{color}}"},
+      {"type": "shape", "kind": "polygon", "points": [[10, 52], [50, 52], [30, 92]], "fill": "{{color}}"},
+      {"type": "shape", "kind": "circle", "size": 16, "x": 30, "y": 42, "fill": "#ffffff"},
+      {"type": "text", "text": "{{place}}", "font": "$font_display", "size": 52, "color": "$text", "align": "left", "anchor": "left", "x": 76, "y": 40, "max_width": 720},
+      {"type": "text", "text": "{{date}}", "font": "$font_mono", "size": 30, "color": "$muted", "align": "left", "anchor": "left", "x": 78, "y": 92}
+    ]}
+  },
+  "corner_bug": {
+    "about": "Small persistent channel/brand text in a corner (put x/y near a corner, camera false).",
+    "params": {"text": "@channel", "opacity": 0.75},
+    "layer": {"type": "text", "text": "{{text}}", "font": "$font_body", "size": 32, "color": "#ffffff", "opacity": "{{opacity}}", "camera": false,
+              "shadow": {"blur": 8, "dy": 3, "opacity": 0.5}, "enter": "fade"}
+  }
+}

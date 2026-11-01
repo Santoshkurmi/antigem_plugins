@@ -1,0 +1,31 @@
+{
+ "about": "Dark editorial cards: deep indigo, yellow highlights, clean sans, box captions.",
+ "theme": {
+  "bg": "#14121f",
+  "surface": "#221e36",
+  "text": "#ffffff",
+  "muted": "#a7a3c2",
+  "accent": "#ffd60a",
+  "accent2": "#7c6cff",
+  "ink": "#14121f",
+  "font_display": "display",
+  "font_body": "sans"
+ },
+ "background": {
+  "colors": [
+   "#1b1830",
+   "#0e0c18"
+  ],
+  "angle": 90
+ },
+ "camera": "slow_push",
+ "transition": "cut",
+ "look": {
+  "grain": 0.1,
+  "vignette": 0.35
+ },
+ "captions": {
+  "style": "box",
+  "active_box": "#7c6cff"
+ }
+}

@@ -1,0 +1,172 @@
+{
+ "note": "Screen tutorial: app window, camera zoom into a region, highlight box, callout and numbered steps.",
+ "style": "minimal",
+ "aspect": "16:9",
+ "scenes": [
+  {
+   "id": "step1",
+   "duration": 5.5,
+   "camera": {
+    "animate": {
+     "zoom": [
+      [
+       0,
+       1
+      ],
+      [
+       1.5,
+       1
+      ],
+      [
+       2.3,
+       1.6,
+       "in_out_cubic"
+      ],
+      [
+       4.5,
+       1.6
+      ],
+      [
+       5.2,
+       1,
+       "in_out_cubic"
+      ]
+     ],
+     "x": [
+      [
+       1.5,
+       0
+      ],
+      [
+       2.3,
+       -260,
+       "in_out_cubic"
+      ],
+      [
+       4.5,
+       -260
+      ],
+      [
+       5.2,
+       0,
+       "in_out_cubic"
+      ]
+     ],
+     "y": [
+      [
+       1.5,
+       0
+      ],
+      [
+       2.3,
+       -120,
+       "in_out_cubic"
+      ],
+      [
+       4.5,
+       -120
+      ],
+      [
+       5.2,
+       0,
+       "in_out_cubic"
+      ]
+     ]
+    }
+   },
+   "layers": [
+    {
+     "use": "kit.kicker_index",
+     "with": {
+      "number": "1",
+      "text": "Open your settings"
+     },
+     "x": "4%",
+     "y": "9%",
+     "camera": false
+    },
+    {
+     "use": "kit.browser_frame",
+     "with": {
+      "src": "placeholder_screen.png",
+      "url": "app.example.com/settings",
+      "w": 1300,
+      "h": 800,
+      "scroll": 300,
+      "dur": 1.4
+     },
+     "y": "56%"
+    },
+    {
+     "use": "kit.highlight_box",
+     "with": {
+      "w": 560,
+      "h": 120
+     },
+     "x": 650,
+     "y": 440,
+     "at": 2.4
+    },
+    {
+     "use": "kit.callout",
+     "with": {
+      "text": "Click here",
+      "px": 900,
+      "py": 440,
+      "lx": 1300,
+      "ly": 300
+     },
+     "at": 2.8
+    }
+   ]
+  },
+  {
+   "id": "step2",
+   "duration": 4.5,
+   "transition": {
+    "type": "slide_left",
+    "duration": 0.4
+   },
+   "layers": [
+    {
+     "use": "kit.kicker_index",
+     "with": {
+      "number": "2",
+      "text": "Turn on backups"
+     },
+     "x": "4%",
+     "y": "9%"
+    },
+    {
+     "use": "kit.app_window",
+     "with": {
+      "src": "placeholder_screen.png",
+      "title": "settings",
+      "w": 1200,
+      "h": 760
+     },
+     "y": "56%"
+    },
+    {
+     "use": "kit.spotlight",
+     "with": {
+      "x": 960,
+      "y": 600,
+      "size": 380,
+      "dim": 0.65
+     },
+     "at": 1.0
+    },
+    {
+     "use": "kit.check_mark",
+     "with": {
+      "size": 200
+     },
+     "x": 960,
+     "y": 600,
+     "at": 1.8
+    }
+   ]
+  }
+ ]
+}

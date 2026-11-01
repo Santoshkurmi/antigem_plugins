@@ -1,0 +1,36 @@
+{
+ "about": "Dark film-noir documentary: teal/amber grade, heavy grain and vignette, red emphasis, slow push-ins.",
+ "theme": {
+  "bg": "#0b0c10",
+  "surface": "#16181f",
+  "text": "#f2efe8",
+  "muted": "#9a9a9a",
+  "accent": "#e0a33a",
+  "accent2": "#d62828",
+  "ink": "#0b0c10",
+  "paper": "#e9e1cf",
+  "font_display": "display",
+  "font_body": "sans",
+  "font_mono": "mono",
+  "font_hand": "hand"
+ },
+ "background": {
+  "texture": "noise",
+  "color": "#0b0c10"
+ },
+ "camera": "slow_push",
+ "transition": "cut",
+ "look": {
+  "contrast": 1.12,
+  "saturation": 0.8,
+  "warmth": 0.15,
+  "grain": 0.35,
+  "vignette": 0.6
+ },
+ "captions": {
+  "style": "karaoke",
+  "font": "display",
+  "active_color": "#e0a33a",
+  "max_words": 3
+ }
+}

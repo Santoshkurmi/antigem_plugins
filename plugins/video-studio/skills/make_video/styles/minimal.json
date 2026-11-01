@@ -1,0 +1,28 @@
+{
+ "about": "Clean minimal: white space, black type, one blue accent, gentle fades \u2014 tutorials, corporate, product.",
+ "theme": {
+  "bg": "#fafafa",
+  "surface": "#ffffff",
+  "text": "#111111",
+  "muted": "#6b7280",
+  "accent": "#2563eb",
+  "accent2": "#f59e0b",
+  "ink": "#111111",
+  "line": "#111111",
+  "font_display": "sans",
+  "font_body": "sans"
+ },
+ "background": "#fafafa",
+ "camera": "still",
+ "transition": {
+  "type": "fade",
+  "duration": 0.35
+ },
+ "captions": {
+  "style": "minimal",
+  "color": "#111111",
+  "stroke_width": 0,
+  "active_color": "#2563eb",
+  "shadow": false
+ }
+}

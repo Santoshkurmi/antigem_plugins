@@ -1,0 +1,37 @@
+{
+ "about": "Luxury / premium: black and gold, serif display, slow moves, dissolves.",
+ "theme": {
+  "bg": "#0a0a0a",
+  "surface": "#151311",
+  "text": "#f3eadb",
+  "muted": "#a89f8f",
+  "accent": "#c9a45c",
+  "accent2": "#e8d3a3",
+  "ink": "#0a0a0a",
+  "font_display": "serif",
+  "font_body": "book"
+ },
+ "background": {
+  "colors": [
+   "#1a1712",
+   "#0a0a0a"
+  ],
+  "radial": true
+ },
+ "camera": "slow_push",
+ "transition": {
+  "type": "dissolve",
+  "duration": 0.7
+ },
+ "look": {
+  "warmth": 0.2,
+  "contrast": 1.05,
+  "grain": 0.08,
+  "vignette": 0.4
+ },
+ "captions": {
+  "style": "minimal",
+  "font": "serif",
+  "active_color": "#c9a45c"
+ }
+}

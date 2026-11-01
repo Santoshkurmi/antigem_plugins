@@ -1,0 +1,39 @@
+{
+ "about": "True-crime suspense: cold desaturated grade, crushing vignette, blood-red accents, typewriter labels, dips to black.",
+ "theme": {
+  "bg": "#07090b",
+  "surface": "#12161a",
+  "text": "#e8e8e8",
+  "muted": "#8a9199",
+  "accent": "#c1121f",
+  "accent2": "#c1121f",
+  "ink": "#07090b",
+  "paper": "#d8d2c4",
+  "font_display": "display",
+  "font_body": "sans",
+  "font_mono": "mono",
+  "font_hand": "hand"
+ },
+ "background": {
+  "texture": "noise",
+  "color": "#07090b"
+ },
+ "camera": "slow_push",
+ "transition": {
+  "type": "dip",
+  "duration": 0.6
+ },
+ "look": {
+  "contrast": 1.18,
+  "saturation": 0.6,
+  "warmth": -0.3,
+  "grain": 0.45,
+  "vignette": 0.75
+ },
+ "captions": {
+  "style": "minimal",
+  "font": "mono",
+  "size": 46,
+  "active_color": "#ff4d4d"
+ }
+}

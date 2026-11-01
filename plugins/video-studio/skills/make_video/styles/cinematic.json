@@ -1,0 +1,31 @@
+{
+ "about": "Warm cinematic film look with elegant serif titles and soft dissolves (add look.letterbox for 16:9).",
+ "theme": {
+  "bg": "#0d0b09",
+  "surface": "#1b1612",
+  "text": "#f5ede0",
+  "muted": "#b8a990",
+  "accent": "#e8b04b",
+  "accent2": "#c2452d",
+  "ink": "#0d0b09",
+  "font_display": "serif",
+  "font_body": "sans"
+ },
+ "background": "#0d0b09",
+ "camera": "slow_push",
+ "transition": {
+  "type": "dissolve",
+  "duration": 0.6
+ },
+ "look": {
+  "contrast": 1.08,
+  "warmth": 0.3,
+  "grain": 0.15,
+  "vignette": 0.45
+ },
+ "captions": {
+  "style": "minimal",
+  "font": "sans",
+  "size": 52
+ }
+}

@@ -1,0 +1,33 @@
+{
+ "about": "Vox-style explainer documentary: cream paper, black ink, red/yellow accents, paper cut-outs, box captions.",
+ "theme": {
+  "bg": "#efe6d2",
+  "surface": "#fbf7ee",
+  "text": "#1b1b1b",
+  "muted": "#6b6355",
+  "accent": "#e63946",
+  "accent2": "#f4a261",
+  "ink": "#1b1b1b",
+  "paper": "#fbf7ee",
+  "line": "#1b1b1b",
+  "font_display": "display",
+  "font_body": "sans",
+  "font_mono": "mono",
+  "font_hand": "hand"
+ },
+ "background": {
+  "texture": "paper"
+ },
+ "camera": "drift",
+ "transition": "cut",
+ "look": {
+  "contrast": 1.04,
+  "grain": 0.15,
+  "vignette": 0.25
+ },
+ "captions": {
+  "style": "box",
+  "active_box": "#e63946",
+  "max_words": 3
+ }
+}

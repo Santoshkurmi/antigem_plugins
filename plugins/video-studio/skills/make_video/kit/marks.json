@@ -1,0 +1,111 @@
+{
+  // Emphasis marks, stamps and doodled accents.
+  "stamp_rubber": {
+    "about": "Rubber stamp (CLASSIFIED, SOLD OUT...): slams in tilted, inky multiply blend. Use at most twice per video.",
+    "params": {"text": "CLASSIFIED", "color": "$accent2", "size": 92, "rotation": -9},
+    "layer": {"type": "text", "text": "{{text}}", "font": "$font_display", "size": "{{size}}", "color": "{{color}}", "uppercase": true, "letter_spacing": 4,
+              "rotation": "{{rotation}}", "opacity": 0.92,
+              "plate": {"color": "#00000000", "padding": [0.3, 0.14], "radius": 0.12, "border": {"width": 10, "color": "{{color}}"}},
+              "enter": {"preset": "stamp", "angle": 6, "duration": 0.32}, "sfx": {"src": "sfx:impact", "volume": 0.6}}
+  },
+  "stamp_seal": {
+    "about": "Round seal (APPROVED, VERIFIED) with a double ring.",
+    "params": {"text": "VERIFIED", "color": "$accent", "size": 300},
+    "layer": {"type": "group", "w": "{{size}}", "h": "{{size}}", "rotation": -12, "enter": {"preset": "stamp", "duration": 0.35}, "sfx": {"src": "sfx:hit", "volume": 0.5}, "layers": [
+      {"type": "shape", "kind": "ring", "size": "{{size}}", "stroke": "{{color}}", "stroke_width": 10},
+      {"type": "shape", "kind": "ring", "size": "{{size}}", "scale": 0.82, "stroke": "{{color}}", "stroke_width": 4},
+      {"type": "text", "text": "{{text}}", "font": "$font_display", "size": 54, "color": "{{color}}", "uppercase": true, "max_width": 230}
+    ]}
+  },
+  "stamp_tape": {
+    "about": "Diagonal hazard/caution tape with text.",
+    "params": {"text": "DO NOT CROSS", "color": "#ffd60a", "text_color": "#111111", "w": 1300, "rotation": -7},
+    "layer": {"type": "group", "w": "{{w}}", "h": 110, "rotation": "{{rotation}}", "enter": "wipe_right", "shadow": {"blur": 16, "dy": 8, "opacity": 0.4}, "layers": [
+      {"type": "shape", "kind": "rect", "w": "{{w}}", "h": 110, "fill": "{{color}}"},
+      {"type": "text", "text": "{{text}}   ◆   {{text}}   ◆   {{text}}", "font": "$font_display", "size": 62, "color": "{{text_color}}", "max_width": 5000, "uppercase": true}
+    ]}
+  },
+  "stamp_scrawl": {
+    "about": "Handwritten red note with a scribbled underline (\"the real reason?\").",
+    "params": {"text": "really?!", "color": "$accent2", "size": 96},
+    "layer": {"type": "group", "w": 700, "h": 220, "rotation": -6, "layers": [
+      {"type": "text", "text": "{{text}}", "font": "$font_hand", "size": "{{size}}", "color": "{{color}}", "y": 90, "reveal": {"by": "char", "preset": "appear", "stagger": 0.05},
+       "sfx": {"src": "sfx:scribble", "volume": 0.5}},
+      {"type": "shape", "kind": "path", "points": [[110, 170], [330, 160], [590, 172]], "curve": true, "stroke": "{{color}}", "stroke_width": 8, "rough": 3, "at": 0.4,
+       "animate": {"progress": [[0, 0], [0.35, 1]]}}
+    ]}
+  },
+  "stamp_tab": {
+    "about": "File-folder tab label (case files, chapters).",
+    "params": {"text": "CASE #07", "color": "$accent", "text_color": "$ink"},
+    "layer": {"type": "text", "text": "{{text}}", "font": "$font_mono", "size": 40, "color": "{{text_color}}", "uppercase": true,
+              "plate": {"color": "{{color}}", "padding": [0.8, 0.35], "radius": 0.2}, "enter": "slide_up", "sfx": {"src": "sfx:paper", "volume": 0.4}}
+  },
+  "burst": {
+    "about": "Starburst badge behind short text (NEW!, 50% OFF, WOW).",
+    "params": {"text": "NEW!", "color": "$accent", "text_color": "$ink", "size": 260},
+    "layer": {"type": "group", "w": "{{size}}", "h": "{{size}}", "enter": "pop", "loop": {"preset": "pulse", "amp": 0.05}, "sfx": {"src": "sfx:pop", "volume": 0.5}, "layers": [
+      {"type": "shape", "kind": "star", "count": 14, "inner": 0.72, "size": "{{size}}", "fill": "{{color}}", "loop": {"preset": "spin", "period": 14}},
+      {"type": "text", "text": "{{text}}", "font": "$font_display", "size": 62, "color": "{{text_color}}", "max_width": 200, "rotation": -8}
+    ]}
+  },
+  "circle_scribble": {
+    "about": "Hand-drawn circle that draws itself around something.",
+    "params": {"w": 420, "h": 240, "color": "$accent2", "width": 9},
+    "layer": {"type": "shape", "kind": "ellipse", "w": "{{w}}", "h": "{{h}}", "fill": null, "stroke": "{{color}}", "stroke_width": "{{width}}", "rough": 5,
+              "start_angle": -120, "sweep": 380, "animate": {"progress": [[0, 0], [0.55, 1, "in_out_sine"]]}, "sfx": {"src": "sfx:scribble", "volume": 0.4}}
+  },
+  "underline_scribble": {
+    "about": "Rough marker underline that draws on (put it under a word).",
+    "params": {"w": 400, "color": "$accent", "width": 10},
+    "layer": {"type": "group", "w": "{{w}}", "h": 40, "layers": [
+      {"type": "shape", "kind": "path", "points": [[0, 24], ["{{w}}", 16]], "stroke": "{{color}}", "stroke_width": "{{width}}", "rough": 3,
+       "animate": {"progress": [[0, 0], [0.35, 1]]}}]}
+  },
+  "arrow_doodle": {
+    "about": "Curvy hand-drawn arrow from (x1,y1) to (x2,y2), drawn on. Coordinates are frame px; don't set x/y.",
+    "params": {"x1": 200, "y1": 400, "x2": 600, "y2": 700, "bend_x": 520, "bend_y": 420, "color": "$accent2", "width": 9},
+    "layer": {"type": "shape", "kind": "arrow", "points": [["{{x1}}", "{{y1}}"], ["{{bend_x}}", "{{bend_y}}"], ["{{x2}}", "{{y2}}"]], "curve": true,
+              "stroke": "{{color}}", "stroke_width": "{{width}}", "rough": 2.5, "animate": {"progress": [[0, 0], [0.5, 1, "out_cubic"]]}}
+  },
+  "check_mark": {
+    "about": "Green tick that draws on.",
+    "params": {"size": 160, "color": "#30d158"},
+    "layer": {"type": "group", "w": "{{size}}", "h": "{{size}}", "sfx": {"src": "sfx:success", "volume": 0.4}, "layers": [
+      {"type": "shape", "kind": "path", "points": [["15%", "55%"], ["40%", "80%"], ["88%", "20%"]], "stroke": "{{color}}", "stroke_width": 22,
+       "animate": {"progress": [[0, 0], [0.35, 1, "out_cubic"]]}}
+    ]}
+  },
+  "cross_mark": {
+    "about": "Red X that draws on (wrong / myth).",
+    "params": {"size": 160, "color": "#ff3b30"},
+    "layer": {"type": "group", "w": "{{size}}", "h": "{{size}}", "sfx": {"src": "sfx:buzz", "volume": 0.35}, "layers": [
+      {"type": "shape", "kind": "line", "from": ["15%", "15%"], "to": ["85%", "85%"], "stroke": "{{color}}", "stroke_width": 22, "animate": {"progress": [[0, 0], [0.2, 1]]}},
+      {"type": "shape", "kind": "line", "from": ["85%", "15%"], "to": ["15%", "85%"], "stroke": "{{color}}", "stroke_width": 22, "at": 0.15, "animate": {"progress": [[0, 0], [0.2, 1]]}}
+    ]}
+  },
+  "highlight_box": {
+    "about": "Pulsing outline box to point at part of an image/screen. Set x/y/w/h.",
+    "params": {"w": 400, "h": 200, "color": "$accent", "radius": 16},
+    "layer": {"type": "shape", "kind": "rect", "w": "{{w}}", "h": "{{h}}", "radius": "{{radius}}", "fill": null, "stroke": "{{color}}", "stroke_width": 8,
+              "animate": {"progress": [[0, 0], [0.4, 1, "out_cubic"]]}, "loop": {"preset": "pulse", "amp": 0.03}, "glow": {"color": "{{color}}", "blur": 16, "opacity": 0.6}}
+  },
+  "spotlight": {
+    "about": "Darkens the whole frame except a circle at (x, y) — draws the eye. Put it above the layers it dims.",
+    "params": {"x": 540, "y": 800, "size": 420, "dim": 0.7},
+    "layer": {"type": "group", "slot": "full", "camera": false, "enter": "fade", "mask_invert": true,
+      "mask": {"type": "shape", "kind": "circle", "size": "{{size}}", "x": "{{x}}", "y": "{{y}}", "blur": 30},
+      "layers": [{"type": "shape", "kind": "rect", "slot": "full", "fill": "#000000", "opacity": "{{dim}}"}]}
+  },
+  "callout": {
+    "about": "Dot on a point (px, py) with a leader line to a label at (lx, ly). Frame px coordinates; don't set x/y.",
+    "params": {"text": "Label", "px": 540, "py": 900, "lx": 820, "ly": 650, "color": "$accent", "text_color": "$text", "size": 42},
+    "layers": [
+      {"type": "shape", "kind": "circle", "size": 26, "x": "{{px}}", "y": "{{py}}", "fill": "{{color}}", "enter": "pop", "loop": {"preset": "pulse", "amp": 0.2}},
+      {"type": "shape", "kind": "line", "from": ["{{px}}", "{{py}}"], "to": ["{{lx}}", "{{ly}}"], "stroke": "{{color}}", "stroke_width": 5, "at": 0.15,
+       "animate": {"progress": [[0, 0], [0.35, 1, "out_cubic"]]}},
+      {"type": "text", "text": "{{text}}", "font": "$font_body", "size": "{{size}}", "color": "{{text_color}}", "x": "{{lx}}", "y": "{{ly}}",
+       "anchor": "bottom", "offset_y": -12, "plate": {"color": "#000000a0", "padding": [0.4, 0.2]}, "at": 0.45, "enter": "pop", "max_width": 600}
+    ]
+  }
+}

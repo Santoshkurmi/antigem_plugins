@@ -1,0 +1,93 @@
+{
+  // Numbers, charts and info graphics.
+  "stat_card": {
+    "about": "Big counting number + label on a card.",
+    "params": {"value": 87, "prefix": "", "suffix": "%", "label": "of people agree", "format": "{:,.0f}", "color": "$accent", "card": "$surface"},
+    "layer": {"type": "group", "w": 560, "h": 340, "enter": "rise", "shadow": {"blur": 30, "dy": 16, "opacity": 0.3}, "layers": [
+      {"type": "shape", "kind": "rect", "w": 560, "h": 340, "radius": 34, "fill": "{{card}}"},
+      {"type": "counter", "from": 0, "to": "{{value}}", "prefix": "{{prefix}}", "suffix": "{{suffix}}", "format": "{{format}}", "font": "$font_display", "size": 140,
+       "color": "{{color}}", "y": 140, "max_width": 500, "count": {"duration": 1.4}},
+      {"type": "text", "text": "{{label}}", "font": "$font_body", "size": 38, "color": "$muted", "y": 270, "max_width": 500}
+    ]}
+  },
+  "ring_stat": {
+    "about": "Progress ring filling to value% with the number inside.",
+    "params": {"value": 72, "label": "", "size": 320, "color": "$accent", "track": "#ffffff22"},
+    "layer": {"type": "group", "w": "{{size}}", "h": "{{size}}", "enter": "pop", "layers": [
+      {"type": "shape", "kind": "ring", "size": "{{size}}", "stroke": "{{track}}", "stroke_width": 28},
+      {"type": "shape", "kind": "ring", "size": "{{size}}", "stroke": "{{color}}", "stroke_width": 28, "progress": 0,
+       "animate": {"progress": [[0.1, 0], [1.4, 1, "out_cubic"]]}, "scale": 1, "opacity": 1},
+      {"type": "counter", "from": 0, "to": "{{value}}", "suffix": "%", "font": "$font_display", "size": 96, "color": "$text", "count": {"duration": 1.3, "delay": 0.1}},
+      {"type": "text", "text": "{{label}}", "font": "$font_body", "size": 30, "color": "$muted", "y": "72%", "max_width": 220}
+    ]}
+  },
+  "progress_bar": {
+    "about": "Labeled bar that fills to value% over 'dur' seconds.",
+    "params": {"label": "Progress", "value": 65, "w": 800, "dur": 1.2, "color": "$accent"},
+    "layer": {"type": "group", "w": "{{w}}", "h": 120, "enter": "fade", "layers": [
+      {"type": "text", "text": "{{label}}", "font": "$font_body", "size": 38, "color": "$text", "align": "left", "anchor": "left", "x": 0, "y": 28},
+      {"type": "counter", "from": 0, "to": "{{value}}", "suffix": "%", "font": "$font_body", "size": 38, "color": "{{color}}", "align": "right", "anchor": "right", "x": "100%", "y": 28,
+       "count": {"duration": "{{dur}}", "ease": "out_cubic"}},
+      {"type": "shape", "kind": "rect", "w": "100%", "h": 26, "y": 88, "radius": 13, "fill": "#ffffff22"},
+      {"type": "group", "w": "100%", "h": 26, "y": 88, "animate": {"crop_right": [[0, 1], ["{{dur}}", "{{= 1 - value / 100 }}", "out_cubic"]]}, "layers": [
+        {"type": "shape", "kind": "rect", "w": "100%", "h": 26, "radius": 13, "fill": "{{color}}"}]}
+    ]}
+  },
+  "versus": {
+    "about": "A vs B comparison: two names split by a VS badge.",
+    "params": {"a": "Cats", "b": "Dogs", "color_a": "#0a84ff", "color_b": "#ff375f"},
+    "layer": {"type": "group", "w": 1000, "h": 300, "layers": [
+      {"type": "text", "text": "{{a}}", "font": "$font_display", "size": 110, "color": "{{color_a}}", "x": "24%", "y": 150, "max_width": 420, "enter": "fly_right"},
+      {"type": "text", "text": "{{b}}", "font": "$font_display", "size": 110, "color": "{{color_b}}", "x": "76%", "y": 150, "max_width": 420, "enter": "fly_left"},
+      {"type": "text", "text": "VS", "font": "$font_display", "size": 90, "color": "$ink", "plate": {"color": "$accent", "padding": [0.35, 0.2], "radius": 1},
+       "y": 150, "at": 0.4, "enter": "stamp", "sfx": {"src": "sfx:impact", "volume": 0.6}}
+    ]}
+  },
+  "countdown_number": {
+    "about": "Huge rank number that stamps in (#5, #4...). Pair with a title.",
+    "params": {"number": "#5", "color": "$accent", "size": 320},
+    "layer": {"type": "text", "text": "{{number}}", "font": "$font_display", "size": "{{size}}", "color": "{{color}}", "stroke_width": 10, "stroke_color": "$ink",
+              "enter": {"preset": "stamp", "angle": 0}, "sfx": {"src": "sfx:impact", "volume": 0.6}, "loop": {"preset": "breathe", "amp": 0.02}}
+  },
+  "map_pin": {
+    "about": "Map pin that drops onto (x, y) with a pulsing ring and a label above.",
+    "params": {"label": "Here", "color": "#ff375f", "size": 80},
+    "layer": {"type": "group", "w": 600, "h": 360, "anchor": [0.5, 0.86], "layers": [
+      {"type": "shape", "kind": "ring", "size": 120, "y": 310, "scale_y": 0.4, "stroke": "{{color}}", "stroke_width": 6, "at": 0.4,
+       "loop": {"preset": "pulse", "amp": 0.5, "period": 1.2}, "opacity": 0.7},
+      {"type": "group", "w": "{{size}}", "h": 140, "y": 240, "enter": "drop", "sfx": {"src": "sfx:pop", "volume": 0.5}, "layers": [
+        {"type": "shape", "kind": "circle", "size": "{{size}}", "y": 40, "fill": "{{color}}", "stroke": "#ffffff", "stroke_width": 6},
+        {"type": "shape", "kind": "polygon", "points": [["15%", 62], ["85%", 62], ["50%", 140]], "fill": "{{color}}"},
+        {"type": "shape", "kind": "circle", "size": 26, "y": 40, "fill": "#ffffff"}]},
+      {"type": "text", "text": "{{label}}", "font": "$font_display", "size": 50, "color": "#ffffff", "y": 110, "plate": {"color": "#000000b0", "padding": [0.4, 0.2]},
+       "at": 0.5, "enter": "pop", "max_width": 560}
+    ]}
+  },
+  "timeline_point": {
+    "about": "One timeline stop: dot + year above + text below. Place several along a kit.timeline_line.",
+    "params": {"year": "1990", "text": "Something happened", "color": "$accent"},
+    "layer": {"type": "group", "w": 320, "h": 300, "layers": [
+      {"type": "text", "text": "{{year}}", "font": "$font_display", "size": 62, "color": "{{color}}", "y": 70, "enter": "slide_up"},
+      {"type": "shape", "kind": "circle", "size": 34, "y": 150, "fill": "{{color}}", "stroke": "#ffffff", "stroke_width": 6, "enter": "pop", "sfx": {"src": "sfx:tick", "volume": 0.5}},
+      {"type": "text", "text": "{{text}}", "font": "$font_body", "size": 32, "color": "$text", "y": 230, "max_width": 300, "max_lines": 3, "at": 0.15, "enter": "rise"}
+    ]}
+  },
+  "timeline_line": {
+    "about": "Horizontal line that draws across at height y (frame px). Put kit.timeline_point items on it (their center = this y).",
+    "params": {"y": 960, "x1": 80, "x2": 1000, "dur": 1.5, "color": "$muted"},
+    "layer": {"type": "shape", "kind": "line", "from": ["{{x1}}", "{{y}}"], "to": ["{{x2}}", "{{y}}"], "stroke": "{{color}}", "stroke_width": 6,
+              "animate": {"progress": [[0, 0], ["{{dur}}", 1, "in_out_sine"]]}}
+  },
+  "clock": {
+    "about": "Analog clock whose hands spin `turns` times during `dur` seconds (time passing).",
+    "params": {"size": 300, "turns": 3, "dur": 2.5, "color": "$text", "face": "$surface"},
+    "layer": {"type": "group", "w": "{{size}}", "h": "{{size}}", "enter": "pop", "layers": [
+      {"type": "shape", "kind": "circle", "size": "{{size}}", "fill": "{{face}}", "stroke": "{{color}}", "stroke_width": 12},
+      {"type": "shape", "kind": "line", "from": ["50%", "50%"], "to": ["50%", "18%"], "stroke": "{{color}}", "stroke_width": 10, "anchor": [0.5, 1],
+       "animate": {"rotation": [[0, 0], ["{{dur}}", 1080, "in_out_sine"]]}},
+      {"type": "shape", "kind": "line", "from": ["50%", "50%"], "to": ["50%", "30%"], "stroke": "{{color}}", "stroke_width": 14, "anchor": [0.5, 1],
+       "animate": {"rotation": [[0, 0], ["{{dur}}", 90, "in_out_sine"]]}},
+      {"type": "shape", "kind": "circle", "size": 26, "fill": "{{color}}"}
+    ]}
+  }
+}

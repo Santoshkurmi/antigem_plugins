@@ -1,0 +1,33 @@
+{
+ "about": "8-bit arcade: black screen, pixelated image, scanlines, chiptune blips, pixelize transitions.",
+ "theme": {
+  "bg": "#000000",
+  "surface": "#1d1d3b",
+  "text": "#ffffff",
+  "muted": "#9a9ab0",
+  "accent": "#ffd60a",
+  "accent2": "#ff004d",
+  "ink": "#000000",
+  "font_display": "display",
+  "font_body": "mono",
+  "font_mono": "mono"
+ },
+ "background": "#000000",
+ "camera": "still",
+ "transition": {
+  "type": "pixelize",
+  "duration": 0.4
+ },
+ "look": {
+  "pixelate": 4,
+  "scanlines": 0.3,
+  "rgb_shift": 1,
+  "saturation": 1.3
+ },
+ "captions": {
+  "style": "single",
+  "font": "mono",
+  "size": 80,
+  "active_color": "#ffd60a"
+ }
+}

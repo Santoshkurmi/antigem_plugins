@@ -1,0 +1,37 @@
+{
+ "about": "Neon tech / cyber: near-black, cyan and magenta glow, monospace accents, bloom.",
+ "theme": {
+  "bg": "#05060f",
+  "surface": "#0e1024",
+  "text": "#e6f7ff",
+  "muted": "#7d8bb0",
+  "accent": "#00e5ff",
+  "accent2": "#ff2bd6",
+  "ink": "#05060f",
+  "font_display": "display",
+  "font_body": "sans",
+  "font_mono": "mono"
+ },
+ "background": {
+  "colors": [
+   "#0c0f2b",
+   "#05060f"
+  ],
+  "radial": true
+ },
+ "camera": "drift",
+ "transition": {
+  "type": "glitch",
+  "duration": 0.25
+ },
+ "look": {
+  "bloom": 0.45,
+  "contrast": 1.1,
+  "grain": 0.12
+ },
+ "captions": {
+  "style": "karaoke",
+  "font": "display",
+  "active_color": "#00e5ff"
+ }
+}

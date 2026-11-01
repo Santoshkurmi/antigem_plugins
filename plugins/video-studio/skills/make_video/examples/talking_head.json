@@ -1,0 +1,82 @@
+{
+ "note": "Talking-head edit: punch-in zooms between sentences, lower third, B-roll and stat pop-ups over the speaker. The clip's own sound is the voice.",
+ "style": "minimal",
+ "aspect": "9:16",
+ "scenes": [
+  {
+   "id": "talk",
+   "duration": 8,
+   "background": {
+    "video": "placeholder_talk.mp4"
+   },
+   "camera": {
+    "animate": {
+     "zoom": [
+      [
+       0,
+       1
+      ],
+      [
+       2.5,
+       1
+      ],
+      [
+       2.55,
+       1.18,
+       "hold"
+      ],
+      [
+       5.4,
+       1.18
+      ],
+      [
+       5.45,
+       1,
+       "hold"
+      ]
+     ]
+    }
+   },
+   "layers": [
+    {
+     "use": "kit.lower_third_bar",
+     "with": {
+      "name": "Dr. Lena Ortiz",
+      "role": "Sleep researcher"
+     },
+     "at": 0.4,
+     "until": 3.6
+    },
+    {
+     "use": "kit.photo_card",
+     "with": {
+      "src": "placeholder_photo.jpg",
+      "w": 860,
+      "h": 560
+     },
+     "slot": "top_half",
+     "at": 3.8,
+     "until": 5.6,
+     "exit": "fade"
+    },
+    {
+     "use": "kit.stat_card",
+     "with": {
+      "value": 7,
+      "suffix": " h",
+      "label": "sleep adults need",
+      "card": "#ffffff",
+      "color": "$accent"
+     },
+     "y": "30%",
+     "at": 5.8
+    }
+   ]
+  }
+ ],
+ "audio": {
+  "voice": {
+   "src": "placeholder_talk.mp4"
+  }
+ }
+}

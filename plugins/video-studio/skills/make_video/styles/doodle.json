@@ -1,0 +1,31 @@
+{
+ "about": "Hand-drawn whiteboard/notebook: handwriting everywhere, wobbly 'boiling' lines, stick figures, marker colors.",
+ "theme": {
+  "bg": "#fbf8ef",
+  "surface": "#ffffff",
+  "text": "#222222",
+  "muted": "#666666",
+  "accent": "#ff6b35",
+  "accent2": "#2a9d8f",
+  "ink": "#222222",
+  "paper": "#ffffff",
+  "line": "#222222",
+  "font_display": "hand",
+  "font_body": "hand",
+  "font_mono": "hand",
+  "font_hand": "hand"
+ },
+ "background": {
+  "texture": "notebook"
+ },
+ "camera": "still",
+ "transition": "cut",
+ "captions": {
+  "style": "clean",
+  "font": "hand",
+  "color": "#222222",
+  "stroke_width": 0,
+  "active_color": "#ff6b35",
+  "shadow": false
+ }
+}

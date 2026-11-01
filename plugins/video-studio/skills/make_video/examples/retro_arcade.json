@@ -1,0 +1,111 @@
+{
+ "note": "8-bit arcade look: pixel title, PRESS START, dialog box, score and health bars, chiptune sounds.",
+ "style": "retro8bit",
+ "aspect": "16:9",
+ "scenes": [
+  {
+   "id": "title",
+   "duration": 4,
+   "background": {
+    "texture": "grid",
+    "color": "#0b0b2a",
+    "ink": "#1f1f5a"
+   },
+   "layers": [
+    {
+     "type": "particles",
+     "kind": "stars",
+     "count": 80
+    },
+    {
+     "use": "kit.pixel_title",
+     "with": {
+      "text": "SPACE QUEST",
+      "size": 170
+     },
+     "y": "40%"
+    },
+    {
+     "use": "kit.press_start",
+     "y": "70%",
+     "at": 1.2
+    }
+   ]
+  },
+  {
+   "id": "level",
+   "duration": 5,
+   "transition": {
+    "type": "pixelize",
+    "duration": 0.4
+   },
+   "background": "#000000",
+   "layers": [
+    {
+     "use": "kit.score_counter",
+     "with": {
+      "to": 12500
+     },
+     "x": "5%",
+     "y": "8%"
+    },
+    {
+     "use": "kit.health_bar",
+     "with": {
+      "value": 0.3
+     },
+     "x": "58%",
+     "y": "8%"
+    },
+    {
+     "type": "shape",
+     "kind": "rect",
+     "w": "100%",
+     "h": 140,
+     "y": "86%",
+     "fill": "#3a7d44"
+    },
+    {
+     "type": "stickman",
+     "pose": "run",
+     "action": "run",
+     "color": "#ffd60a",
+     "size": 380,
+     "y": "79%",
+     "animate": {
+      "x": [
+       [
+        0,
+        200
+       ],
+       [
+        2.0,
+        900
+       ]
+      ]
+     },
+     "actions": [
+      {
+       "action": "run",
+       "until": 2.0
+      },
+      {
+       "action": "jump",
+       "at": 2.0
+      }
+     ],
+     "sfx": "sfx:jump8"
+    },
+    {
+     "use": "kit.pixel_dialog",
+     "with": {
+      "name": "ROBOT",
+      "text": "Collect 3 stars to open the gate!"
+     },
+     "y": "40%",
+     "at": 2.6
+    }
+   ]
+  }
+ ]
+}

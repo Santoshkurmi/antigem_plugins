@@ -1,0 +1,114 @@
+{
+  // Titles, labels and text treatments. Position any of them with x/y/slot/anchor next to "use".
+  "kicker_bar": {
+    "about": "Small uppercase label with an accent bar on its left (section tag). Anchored left.",
+    "params": {"text": "CHAPTER ONE", "color": "$accent", "text_color": "$text", "size": 38},
+    "layer": {"type": "group", "w": 760, "h": 70, "anchor": "left", "layers": [
+      {"type": "shape", "kind": "rect", "w": 10, "h": 58, "x": 5, "y": 35, "fill": "{{color}}", "enter": "wipe_down"},
+      {"type": "text", "text": "{{text}}", "font": "$font_body", "size": "{{size}}", "color": "{{text_color}}", "uppercase": true,
+       "letter_spacing": 3, "align": "left", "anchor": "left", "x": 30, "y": 35, "max_width": 720, "at": 0.12, "enter": "slide_right"}
+    ]}
+  },
+  "kicker_chip": {
+    "about": "Label on a solid rounded chip that pops in.",
+    "params": {"text": "BREAKING", "color": "$accent", "text_color": "$ink", "size": 36},
+    "layer": {"type": "text", "text": "{{text}}", "font": "$font_body", "size": "{{size}}", "color": "{{text_color}}", "uppercase": true,
+              "letter_spacing": 2, "plate": {"color": "{{color}}", "padding": [0.6, 0.3], "radius": 0.6}, "enter": "pop"}
+  },
+  "kicker_bracket": {
+    "about": "Monospace label in [ brackets ], typed on.",
+    "params": {"text": "FILE 07", "color": "$accent", "size": 40},
+    "layer": {"type": "text", "text": "[ {{text}} ]", "font": "$font_mono", "size": "{{size}}", "color": "{{color}}", "uppercase": true,
+              "reveal": {"by": "char", "preset": "typewriter", "stagger": 0.035}}
+  },
+  "kicker_rule": {
+    "about": "Thin accent rule that draws, with a label under it. Anchored left.",
+    "params": {"text": "THE BACKSTORY", "color": "$accent", "text_color": "$muted", "size": 34},
+    "layer": {"type": "group", "w": 760, "h": 90, "anchor": "left", "layers": [
+      {"type": "shape", "kind": "line", "from": [0, 12], "to": [150, 12], "stroke": "{{color}}", "stroke_width": 6, "cap": "butt",
+       "animate": {"progress": [[0, 0], [0.4, 1, "out_cubic"]]}},
+      {"type": "text", "text": "{{text}}", "font": "$font_body", "size": "{{size}}", "color": "{{text_color}}", "uppercase": true, "letter_spacing": 4,
+       "align": "left", "anchor": "left", "x": 0, "y": 58, "at": 0.15, "enter": "rise"}
+    ]}
+  },
+  "kicker_index": {
+    "about": "Big number + label (\"01  The setup\") for numbered parts. Anchored left.",
+    "params": {"number": "01", "text": "The setup", "color": "$accent", "text_color": "$text"},
+    "layer": {"type": "group", "w": 800, "h": 110, "anchor": "left", "layers": [
+      {"type": "text", "text": "{{number}}", "font": "$font_display", "size": 96, "color": "{{color}}", "align": "left", "anchor": "left", "x": 0, "y": 55, "enter": "slide_up"},
+      {"type": "shape", "kind": "rect", "w": 4, "h": 80, "x": 150, "y": 55, "fill": "{{text_color}}", "opacity": 0.5, "at": 0.1, "enter": "wipe_down"},
+      {"type": "text", "text": "{{text}}", "font": "$font_body", "size": 46, "color": "{{text_color}}", "align": "left", "anchor": "left", "x": 180, "y": 55,
+       "max_width": 600, "at": 0.2, "enter": "slide_right"}
+    ]}
+  },
+  "headline_underline": {
+    "about": "Big title revealed word by word, then an accent underline sweeps under it.",
+    "params": {"text": "The *big* question", "size": 110, "color": "$text", "accent": "$accent", "line_width": 420},
+    "layer": {"type": "group", "w": 1000, "h": 380, "layers": [
+      {"type": "text", "text": "{{text}}", "font": "$font_display", "size": "{{size}}", "color": "{{color}}", "highlight": "{{accent}}", "max_width": 960,
+       "anchor": "bottom", "y": 300, "reveal": {"by": "word", "preset": "rise", "stagger": 0.08}},
+      {"type": "shape", "kind": "rect", "w": "{{line_width}}", "h": 14, "radius": 7, "y": 335, "fill": "{{accent}}", "at": 0.5, "enter": "wipe_right"}
+    ]}
+  },
+  "headline_box": {
+    "about": "Title printed on a solid block that wipes in (tabloid / news headline).",
+    "params": {"text": "HEADLINE", "size": 96, "color": "$ink", "box": "$accent"},
+    "layer": {"type": "text", "text": "{{text}}", "font": "$font_display", "size": "{{size}}", "color": "{{color}}", "uppercase": true, "max_width": 960,
+              "plate": {"color": "{{box}}", "padding": [0.35, 0.18], "radius": 0.05}, "enter": {"preset": "wipe_right", "duration": 0.45}}
+  },
+  "keyword_marker": {
+    "about": "Words on a highlighter-pen sweep (marks the key term).",
+    "params": {"text": "key term", "size": 80, "color": "$ink", "marker": "$accent"},
+    "layer": {"type": "text", "text": "*{{text}}*", "font": "$font_display", "size": "{{size}}", "highlight": "{{color}}", "color": "{{color}}",
+              "highlight_box": {"color": "{{marker}}", "padding": [0.2, 0.06], "radius": 0.08}, "skew_x": -6,
+              "enter": {"preset": "wipe_right", "duration": 0.4}, "sfx": {"src": "sfx:swish", "volume": 0.35}}
+  },
+  "quote_card": {
+    "about": "Pull quote with big quotation mark, revealed word by word, and the author.",
+    "params": {"text": "Quote text goes here.", "author": "Someone", "color": "$text", "accent": "$accent", "size": 64},
+    "layer": {"type": "group", "w": 920, "h": 720, "layers": [
+      {"type": "text", "text": "“", "font": "$font_display", "size": 320, "color": "{{accent}}", "x": 90, "y": 150, "enter": "pop"},
+      {"type": "text", "text": "{{text}}", "font": "serif", "size": "{{size}}", "color": "{{color}}", "max_width": 800, "max_height": 380, "y": 360,
+       "at": 0.2, "reveal": {"by": "word", "preset": "rise", "stagger": 0.05}},
+      {"type": "text", "text": "— {{author}}", "font": "$font_body", "size": 38, "color": "$muted", "y": 640, "at": 0.8, "enter": "fade"}
+    ]}
+  },
+  "chapter_card": {
+    "about": "Full-frame chapter opener: big number, title, rule. Several layers; best in an otherwise empty scene.",
+    "params": {"number": "1", "title": "Chapter title", "color": "$text", "accent": "$accent"},
+    "layers": [
+      {"type": "text", "text": "{{number}}", "font": "$font_display", "size": 260, "color": "{{accent}}", "y": "38%", "enter": {"preset": "zoom_out", "duration": 0.5}, "sfx": "sfx:impact"},
+      {"type": "shape", "kind": "rect", "w": 300, "h": 8, "y": "48%", "fill": "{{color}}", "opacity": 0.6, "at": 0.3, "enter": "wipe_right"},
+      {"type": "text", "text": "{{title}}", "font": "$font_display", "size": 96, "color": "{{color}}", "y": "56%", "max_width": "84%", "at": 0.4,
+       "reveal": {"by": "word", "preset": "rise", "stagger": 0.08}}
+    ]
+  },
+  "redact": {
+    "about": "Text hidden under a black redaction bar that slides away at `reveal` (a cue relative to this layer: seconds, 'w:word', 'end').",
+    "params": {"text": "TOP SECRET NAME", "size": 64, "font": "$font_mono", "color": "$text", "bar": "#000000", "reveal": 1.5},
+    "layer": {"type": "group", "w": 1000, "h": 160, "layers": [
+      {"type": "text", "text": "{{text}}", "font": "{{font}}", "size": "{{size}}", "color": "{{color}}", "max_width": 960},
+      {"type": "text", "text": "{{text}}", "font": "{{font}}", "size": "{{size}}", "color": "{{bar}}", "max_width": 960,
+       "plate": {"color": "{{bar}}", "padding": [0.15, 0.12], "radius": 0}, "until": "{{reveal}}", "exit": {"preset": "wipe_right", "duration": 0.45},
+       "sfx": {"src": "sfx:swish", "volume": 0.3}}
+    ]}
+  },
+  "list_item": {
+    "about": "One bullet point (dot + text) sliding in. Stack several with increasing y and at. Anchored left.",
+    "params": {"text": "A point worth making", "color": "$text", "bullet": "$accent", "size": 46},
+    "layer": {"type": "group", "w": 900, "h": 90, "anchor": "left", "enter": "slide_right", "layers": [
+      {"type": "shape", "kind": "circle", "size": 22, "x": 16, "y": 45, "fill": "{{bullet}}", "enter": "pop"},
+      {"type": "text", "text": "{{text}}", "font": "$font_body", "size": "{{size}}", "color": "{{color}}", "align": "left", "anchor": "left", "x": 50, "y": 45, "max_width": 840}
+    ]}
+  },
+  "checklist_item": {
+    "about": "Checkbox + text; the tick draws itself at `check` seconds. Anchored left.",
+    "params": {"text": "Done thing", "color": "$text", "tick": "$accent", "size": 46, "check": 0.5},
+    "layer": {"type": "group", "w": 900, "h": 90, "anchor": "left", "enter": "slide_right", "layers": [
+      {"type": "shape", "kind": "rect", "w": 54, "h": 54, "radius": 10, "x": 30, "y": 45, "fill": null, "stroke": "{{color}}", "stroke_width": 5},
+      {"type": "shape", "kind": "path", "points": [[14, 44], [28, 60], [56, 24]], "stroke": "{{tick}}", "stroke_width": 9, "at": "{{check}}",
+       "animate": {"progress": [[0, 0], [0.3, 1, "out_cubic"]]}, "sfx": {"src": "sfx:tick", "volume": 0.5}},
+      {"type": "text", "text": "{{text}}", "font": "$font_body", "size": "{{size}}", "color": "{{color}}", "align": "left", "anchor": "left", "x": 80, "y": 45, "max_width": 800}
+    ]}
+  }
+}

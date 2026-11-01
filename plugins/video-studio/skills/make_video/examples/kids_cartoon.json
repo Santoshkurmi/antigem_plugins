@@ -1,0 +1,109 @@
+{
+ "note": "Bright kids' cartoon: sunburst, bouncing stick figure with a bow, stars, counter and speech bubble.",
+ "style": "cute_toon",
+ "aspect": "9:16",
+ "scenes": [
+  {
+   "id": "count",
+   "duration": 6,
+   "background": {
+    "texture": "sunburst",
+    "color": "#ffd6e7",
+    "ink": "#ffc2d9",
+    "motion": {
+     "preset": "spin",
+     "period": 30
+    }
+   },
+   "layers": [
+    {
+     "type": "text",
+     "text": "Let's count to *ten*!",
+     "font": "$font_display",
+     "size": 110,
+     "slot": "title",
+     "highlight": "$accent2",
+     "reveal": {
+      "by": "word",
+      "preset": "bounce_in",
+      "stagger": 0.12
+     }
+    },
+    {
+     "type": "counter",
+     "from": 1,
+     "to": 10,
+     "format": "{:.0f}",
+     "font": "$font_display",
+     "size": 360,
+     "color": "$accent",
+     "stroke_width": 14,
+     "stroke_color": "#ffffff",
+     "y": "45%",
+     "at": 0.8,
+     "count": {
+      "duration": 4,
+      "ease": "steps(9)"
+     },
+     "loop": {
+      "preset": "pulse",
+      "amp": 0.06,
+      "period": 0.44
+     },
+     "sfx": {
+      "src": "sfx:tick",
+      "volume": 0.4
+     }
+    },
+    {
+     "type": "stickman",
+     "pose": "cheer",
+     "action": "jump",
+     "accessory": "bow",
+     "expression": "laugh",
+     "head_fill": "#ffffff",
+     "size": 460,
+     "x": "30%",
+     "y": "92%",
+     "color": "$ink",
+     "outline": {
+      "width": 10
+     }
+    },
+    {
+     "use": "kit.speech_bubble",
+     "with": {
+      "text": "Yay!",
+      "w": 300,
+      "h": 170
+     },
+     "x": "64%",
+     "y": "68%",
+     "at": 4.8,
+     "sfx": "sfx:pop"
+    },
+    {
+     "type": "particles",
+     "kind": "confetti",
+     "count": 60,
+     "at": 4.8,
+     "sfx": "sfx:success"
+    }
+   ],
+   "camera": {
+    "preset": "still",
+    "punches": [
+     {
+      "at": 1.6
+     },
+     {
+      "at": 2.9
+     },
+     {
+      "at": 4.2
+     }
+    ]
+   }
+  }
+ ]
+}

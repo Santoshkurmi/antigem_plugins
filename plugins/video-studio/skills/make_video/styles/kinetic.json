@@ -1,0 +1,20 @@
+{
+ "about": "High-contrast kinetic typography: black, white and one loud yellow; hard cuts and camera punches. (no captions by default)",
+ "theme": {
+  "bg": "#0a0a0a",
+  "surface": "#1a1a1a",
+  "text": "#ffffff",
+  "muted": "#8e8e93",
+  "accent": "#ffd60a",
+  "accent2": "#ff375f",
+  "ink": "#0a0a0a",
+  "font_display": "display",
+  "font_body": "sans"
+ },
+ "background": "#0a0a0a",
+ "camera": "still",
+ "transition": "cut",
+ "look": {
+  "grain": 0.08
+ }
+}

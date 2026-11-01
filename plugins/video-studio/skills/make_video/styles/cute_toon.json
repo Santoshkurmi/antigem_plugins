@@ -1,0 +1,38 @@
+{
+ "about": "Soft pastel cartoon: rounded type, pink/purple accents, bouncy motion \u2014 kids, lifestyle, wholesome stories.",
+ "theme": {
+  "bg": "#fff1e6",
+  "surface": "#ffffff",
+  "text": "#2d2a32",
+  "muted": "#7a7480",
+  "accent": "#ff6f91",
+  "accent2": "#6c5ce7",
+  "ink": "#2d2a32",
+  "paper": "#ffffff",
+  "font_display": "rounded",
+  "font_body": "rounded",
+  "font_hand": "hand"
+ },
+ "background": {
+  "colors": [
+   "#fff1e6",
+   "#ffe3ec"
+  ],
+  "angle": 90
+ },
+ "camera": "still",
+ "transition": {
+  "type": "circle",
+  "duration": 0.5
+ },
+ "look": {
+  "saturation": 1.05
+ },
+ "captions": {
+  "style": "pop",
+  "font": "rounded",
+  "color": "#ffffff",
+  "stroke_color": "#2d2a32",
+  "active_color": "#ffe066"
+ }
+}

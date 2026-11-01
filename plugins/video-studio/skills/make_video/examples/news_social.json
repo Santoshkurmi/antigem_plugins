@@ -1,0 +1,144 @@
+{
+ "note": "News / social recap: breaking banner, a post card, a phone notification and a chat story.",
+ "style": "news",
+ "aspect": "9:16",
+ "scenes": [
+  {
+   "id": "breaking",
+   "duration": 4.5,
+   "background": {
+    "image": "placeholder_photo.jpg",
+    "filter": {
+     "brightness": 0.7
+    }
+   },
+   "layers": [
+    {
+     "use": "kit.breaking_news",
+     "with": {
+      "headline": "Town votes to ban cars downtown",
+      "ticker": "Markets up 2% • Storm warning for coast • Final score 3–1"
+     },
+     "y": "78%",
+     "sfx": "sfx:whoosh"
+    },
+    {
+     "use": "kit.live_badge",
+     "x": "86%",
+     "y": "8%",
+     "at": 0.6
+    },
+    {
+     "use": "kit.location_tag",
+     "with": {
+      "place": "City Hall",
+      "date": "Live · 9:41 AM"
+     },
+     "x": "8%",
+     "y": "12%",
+     "at": 2.2
+    }
+   ]
+  },
+  {
+   "id": "post",
+   "duration": 4.5,
+   "transition": {
+    "type": "wipe_left",
+    "duration": 0.35
+   },
+   "layers": [
+    {
+     "type": "text",
+     "text": "The internet reacts",
+     "font": "$font_display",
+     "size": 96,
+     "slot": "title",
+     "enter": "slide_down",
+     "until": 2.4,
+     "exit": "fade"
+    },
+    {
+     "use": "kit.post_card",
+     "with": {
+      "name": "Maya Chen",
+      "handle": "@mayac",
+      "text": "Finally I can walk to the bakery without breathing exhaust. Best news this year.",
+      "likes": 48200,
+      "initial": "M"
+     },
+     "y": "45%",
+     "at": 0.4,
+     "sfx": "sfx:pop"
+    },
+    {
+     "use": "kit.notification",
+     "with": {
+      "app": "NEWS",
+      "title": "Poll",
+      "text": "62% of residents support the plan"
+     },
+     "y": "12%",
+     "at": 2.4,
+     "until": 4.3
+    }
+   ]
+  },
+  {
+   "id": "chat",
+   "duration": 5,
+   "transition": {
+    "type": "wipe_left",
+    "duration": 0.35
+   },
+   "background": "#f2f2f7",
+   "layers": [
+    {
+     "use": "kit.chat_left",
+     "with": {
+      "text": "did u see the car ban??"
+     },
+     "x": "7%",
+     "y": "25%",
+     "at": 0.3
+    },
+    {
+     "use": "kit.chat_right",
+     "with": {
+      "text": "yes!! bike rides every day now"
+     },
+     "x": "93%",
+     "y": "34%",
+     "at": 1.2
+    },
+    {
+     "use": "kit.chat_left",
+     "with": {
+      "text": "my commute is gonna be 2 hours"
+     },
+     "x": "7%",
+     "y": "43%",
+     "at": 2.1
+    },
+    {
+     "use": "kit.chat_right",
+     "with": {
+      "text": "or... buy a bike"
+     },
+     "x": "93%",
+     "y": "52%",
+     "at": 3.0
+    },
+    {
+     "type": "stickman",
+     "pose": "shrug",
+     "expression": "happy",
+     "size": 420,
+     "y": "92%",
+     "at": 3.6,
+     "enter": "pop"
+    }
+   ]
+  }
+ ]
+}

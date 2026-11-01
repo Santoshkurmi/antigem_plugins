@@ -1,0 +1,210 @@
+{
+ "note": "True-crime suspense: camcorder overlay, evidence board with red string, redacted name, stamp, heartbeat and drone.",
+ "style": "crime",
+ "aspect": "9:16",
+ "audio": {
+  "sfx": [
+   {
+    "src": "sfx:drone",
+    "at": 0,
+    "volume": 0.5
+   },
+   {
+    "src": "sfx:heartbeat",
+    "at": 4.2,
+    "volume": 0.6
+   },
+   {
+    "src": "sfx:stinger",
+    "at": 9.6,
+    "volume": 0.6
+   }
+  ]
+ },
+ "scenes": [
+  {
+   "id": "cold_open",
+   "duration": 4.2,
+   "background": {
+    "image": "placeholder_portrait.jpg",
+    "filter": {
+     "grayscale": 1,
+     "contrast": 1.3,
+     "brightness": 0.7
+    },
+    "motion": {
+     "preset": "ken_burns",
+     "to": 1.25
+    }
+   },
+   "camera": "handheld",
+   "layers": [
+    {
+     "use": "kit.rec_overlay",
+     "with": {
+      "stamp": "CAM 2  02:13:07",
+      "date": "NOV 03 2009"
+     }
+    },
+    {
+     "type": "text",
+     "text": "He walked in at 2:13 AM.",
+     "font": "$font_mono",
+     "size": 54,
+     "y": "62%",
+     "reveal": {
+      "by": "char",
+      "preset": "typewriter",
+      "stagger": 0.04
+     },
+     "sfx": "sfx:typing",
+     "at": 0.6
+    },
+    {
+     "type": "text",
+     "text": "He never walked out.",
+     "font": "$font_display",
+     "size": 100,
+     "color": "$accent",
+     "y": "70%",
+     "at": 2.6,
+     "enter": "blur_in",
+     "sfx": "sfx:sub_hit"
+    }
+   ]
+  },
+  {
+   "id": "board",
+   "duration": 5.4,
+   "transition": {
+    "type": "dip",
+    "duration": 0.5
+   },
+   "background": {
+    "texture": "kraft",
+    "color": "#5a4632"
+   },
+   "layout": "board",
+   "camera": {
+    "preset": "slow_push",
+    "shake": {
+     "at": 4.0,
+     "until": 4.5,
+     "amp": 8
+    }
+   },
+   "layers": [
+    {
+     "use": "kit.evidence_photo",
+     "with": {
+      "src": "placeholder_portrait.jpg",
+      "caption": "the guest",
+      "rotation": -4
+     },
+     "slot": "a",
+     "scale": 0.62,
+     "at": 0.2
+    },
+    {
+     "use": "kit.evidence_photo",
+     "with": {
+      "src": "placeholder_photo.jpg",
+      "caption": "the lake house",
+      "rotation": 5
+     },
+     "slot": "b",
+     "scale": 0.62,
+     "at": 0.7
+    },
+    {
+     "type": "shape",
+     "kind": "line",
+     "from": [
+      "28%",
+      "18%"
+     ],
+     "to": [
+      "71%",
+      "24%"
+     ],
+     "stroke": "#c1121f",
+     "stroke_width": 6,
+     "at": 1.4,
+     "animate": {
+      "progress": [
+       [
+        0,
+        0
+       ],
+       [
+        0.5,
+        1
+       ]
+      ]
+     },
+     "shadow": {
+      "blur": 4,
+      "dy": 3
+     }
+    },
+    {
+     "use": "kit.sticky_note",
+     "with": {
+      "text": "Who called at 2:09?",
+      "rotation": -3
+     },
+     "slot": "c",
+     "scale": 0.8,
+     "at": 1.9
+    },
+    {
+     "use": "kit.redact",
+     "with": {
+      "text": "SUSPECT: D. MORROW",
+      "size": 52,
+      "reveal": 2.0,
+      "color": "#ffffff"
+     },
+     "x": "50%",
+     "y": "64%",
+     "at": 2.0
+    },
+    {
+     "use": "kit.stamp_rubber",
+     "with": {
+      "text": "UNSOLVED",
+      "size": 110
+     },
+     "x": "50%",
+     "y": "72%",
+     "at": 4.0
+    }
+   ]
+  },
+  {
+   "id": "question",
+   "duration": 3.2,
+   "transition": {
+    "type": "dip",
+    "duration": 0.5
+   },
+   "background": "#000000",
+   "layers": [
+    {
+     "type": "text",
+     "text": "So who was the *second* guest?",
+     "font": "$font_display",
+     "size": 110,
+     "slot": "middle",
+     "highlight": "$accent",
+     "reveal": {
+      "by": "word",
+      "preset": "blur_in",
+      "stagger": 0.12,
+      "duration": 0.6
+     }
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,8 @@
+{
+  "manifest_version": 3,
+  "id": "video-studio",
+  "name": "Video Studio",
+  "version": "1.0.0",
+  "description": "Make edited videos on the phone: write a JSON timeline (scenes, layers, keyframes, text reveals, camera, transitions, captions, sound) and render it with a bundled FFmpeg + Pillow engine. Skills only; uses the Google Flow plugin for generated assets.",
+  "icon": "icon.png"
+}

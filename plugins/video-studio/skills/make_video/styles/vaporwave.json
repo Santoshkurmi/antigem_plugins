@@ -1,0 +1,35 @@
+{
+ "about": "Vaporwave/VHS: pink-purple gradients, cyan accents, chromatic shift, tape noise, glitch transitions.",
+ "theme": {
+  "bg": "#2b1055",
+  "surface": "#3d1a6e",
+  "text": "#ffffff",
+  "muted": "#d6c2ff",
+  "accent": "#00f0ff",
+  "accent2": "#ff71ce",
+  "ink": "#2b1055",
+  "font_display": "display",
+  "font_body": "sans",
+  "font_mono": "mono"
+ },
+ "background": {
+  "colors": [
+   "#ff71ce",
+   "#7b2ff7",
+   "#2b1055"
+  ],
+  "angle": 90
+ },
+ "camera": "drift",
+ "transition": {
+  "type": "glitch",
+  "duration": 0.3
+ },
+ "look": {
+  "vhs": true
+ },
+ "captions": {
+  "style": "karaoke",
+  "active_color": "#00f0ff"
+ }
+}

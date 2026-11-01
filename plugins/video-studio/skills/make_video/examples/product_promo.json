@@ -1,0 +1,182 @@
+{
+ "note": "App / product promo: phone mock-up, feature list, NEW burst, light sweep and logo outro.",
+ "style": "minimal",
+ "aspect": "9:16",
+ "scenes": [
+  {
+   "id": "hero",
+   "duration": 4.5,
+   "background": {
+    "colors": [
+     "#ffffff",
+     "#e8eefc"
+    ],
+    "angle": 90
+   },
+   "camera": "slow_push",
+   "layers": [
+    {
+     "type": "text",
+     "text": "Plan less. *Do more.*",
+     "font": "$font_display",
+     "size": 110,
+     "slot": "title",
+     "highlight": "$accent",
+     "reveal": {
+      "by": "word",
+      "preset": "rise",
+      "stagger": 0.08
+     }
+    },
+    {
+     "use": "kit.phone_frame",
+     "with": {
+      "src": "placeholder_screen.png"
+     },
+     "y": "60%",
+     "scale": 0.8,
+     "at": 0.3,
+     "loop": {
+      "preset": "float",
+      "amp": 8
+     }
+    },
+    {
+     "use": "kit.burst",
+     "with": {
+      "text": "NEW",
+      "size": 220
+     },
+     "x": "80%",
+     "y": "36%",
+     "at": 1.2
+    }
+   ]
+  },
+  {
+   "id": "features",
+   "duration": 4.5,
+   "transition": {
+    "type": "slide_left",
+    "duration": 0.4
+   },
+   "layout": "split",
+   "layers": [
+    {
+     "type": "text",
+     "text": "Why people switch",
+     "font": "$font_display",
+     "size": 90,
+     "slot": "title"
+    },
+    {
+     "use": "kit.app_window",
+     "with": {
+      "src": "placeholder_screen.png",
+      "title": "planner",
+      "w": 900,
+      "h": 620
+     },
+     "slot": "visual",
+     "scale": 0.9,
+     "at": 0.2
+    },
+    {
+     "use": "kit.list_item",
+     "with": {
+      "text": "Syncs everywhere"
+     },
+     "x": "10%",
+     "y": "66%",
+     "at": 0.7
+    },
+    {
+     "use": "kit.list_item",
+     "with": {
+      "text": "Works offline"
+     },
+     "x": "10%",
+     "y": "72%",
+     "at": 1.1
+    },
+    {
+     "use": "kit.list_item",
+     "with": {
+      "text": "Free for students"
+     },
+     "x": "10%",
+     "y": "78%",
+     "at": 1.5
+    }
+   ]
+  },
+  {
+   "id": "logo",
+   "duration": 3.5,
+   "transition": {
+    "type": "zoom",
+    "duration": 0.45
+   },
+   "background": "#111111",
+   "layers": [
+    {
+     "type": "shape",
+     "kind": "ring",
+     "size": 360,
+     "stroke": "#ffffff",
+     "stroke_width": 6,
+     "y": "45%",
+     "animate": {
+      "progress": [
+       [
+        0,
+        0
+       ],
+       [
+        0.8,
+        1,
+        "in_out_cubic"
+       ]
+      ]
+     }
+    },
+    {
+     "type": "text",
+     "text": "P",
+     "font": "$font_display",
+     "size": 220,
+     "color": "#ffffff",
+     "y": "45%",
+     "at": 0.6,
+     "enter": "zoom_in",
+     "glow": {
+      "blur": 30,
+      "opacity": 0.6
+     },
+     "sfx": "sfx:bass_drop"
+    },
+    {
+     "type": "particles",
+     "kind": "sparks",
+     "count": 50,
+     "at": 0.6,
+     "duration": 1.0
+    },
+    {
+     "type": "text",
+     "text": "planner.app",
+     "font": "$font_body",
+     "size": 48,
+     "color": "#bbbbbb",
+     "y": "62%",
+     "at": 1.2,
+     "reveal": {
+      "by": "char",
+      "preset": "fade",
+      "stagger": 0.03
+     }
+    }
+   ]
+  }
+ ]
+}

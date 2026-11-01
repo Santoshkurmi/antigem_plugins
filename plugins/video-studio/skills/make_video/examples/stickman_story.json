@@ -1,0 +1,177 @@
+{
+ "note": "Two stick-figure characters talking, walking and reacting on a notebook page (doodle style).",
+ "style": "doodle",
+ "aspect": "9:16",
+ "scenes": [
+  {
+   "id": "meet",
+   "duration": 5,
+   "layers": [
+    {
+     "type": "text",
+     "text": "The *job* interview",
+     "font": "$font_display",
+     "size": 110,
+     "slot": "title",
+     "highlight": "$accent",
+     "reveal": {
+      "by": "word",
+      "preset": "pop",
+      "stagger": 0.1
+     }
+    },
+    {
+     "type": "stickman",
+     "id": "boss",
+     "pose": "cross_arms",
+     "expression": "neutral",
+     "accessory": "tie",
+     "size": 560,
+     "x": "74%",
+     "y": "86%",
+     "facing": "left",
+     "loop": "boil",
+     "rough": 1.5,
+     "expressions": [
+      {
+       "at": 3.4,
+       "expression": "surprised"
+      }
+     ],
+     "poses": [
+      {
+       "at": 3.4,
+       "pose": "surprised"
+      }
+     ]
+    },
+    {
+     "type": "stickman",
+     "pose": "walk",
+     "action": "walk",
+     "size": 560,
+     "y": "86%",
+     "loop": "boil",
+     "rough": 1.5,
+     "accessory": "glasses",
+     "expression": "happy",
+     "animate": {
+      "x": [
+       [
+        0,
+        -200
+       ],
+       [
+        1.8,
+        300,
+        "out_sine"
+       ]
+      ]
+     },
+     "actions": [
+      {
+       "action": "walk",
+       "until": 1.8
+      },
+      {
+       "action": "wave",
+       "at": 1.9,
+       "until": 3.2
+      }
+     ]
+    },
+    {
+     "use": "kit.speech_bubble",
+     "with": {
+      "text": "Hi! I'm great at everything!",
+      "w": 460,
+      "h": 230,
+      "size": 40
+     },
+     "x": "36%",
+     "y": "45%",
+     "at": 2.0,
+     "until": 3.6,
+     "sfx": "sfx:pop"
+    },
+    {
+     "use": "kit.speech_bubble",
+     "with": {
+      "text": "Everything?",
+      "w": 360,
+      "h": 190
+     },
+     "x": "72%",
+     "y": "42%",
+     "at": 3.6,
+     "sfx": "sfx:pop"
+    }
+   ]
+  },
+  {
+   "id": "test",
+   "duration": 4.5,
+   "layers": [
+    {
+     "type": "stickman",
+     "pose": "point",
+     "expression": "angry",
+     "accessory": "tie",
+     "size": 520,
+     "x": "74%",
+     "y": "88%",
+     "facing": "left",
+     "loop": "boil",
+     "rough": 1.5
+    },
+    {
+     "type": "stickman",
+     "pose": "facepalm",
+     "expression": "worried",
+     "accessory": "glasses",
+     "size": 520,
+     "x": "28%",
+     "y": "88%",
+     "loop": "boil",
+     "rough": 1.5,
+     "at": 1.4,
+     "actions": [
+      {
+       "action": "nod",
+       "at": 0.2
+      }
+     ]
+    },
+    {
+     "use": "kit.sticky_note",
+     "with": {
+      "text": "Juggle 5 balls",
+      "rotation": -5
+     },
+     "x": "50%",
+     "y": "30%",
+     "at": 0.3
+    },
+    {
+     "use": "kit.circle_scribble",
+     "with": {
+      "w": 460,
+      "h": 460
+     },
+     "x": "50%",
+     "y": "30%",
+     "at": 1.0
+    },
+    {
+     "use": "kit.stamp_scrawl",
+     "with": {
+      "text": "uh oh..."
+     },
+     "x": "40%",
+     "y": "55%",
+     "at": 1.6
+    }
+   ]
+  }
+ ]
+}
