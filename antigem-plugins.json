@@ -8,6 +8,14 @@
       "version": "1.1.0",
       "description": "Make edited videos on the phone from a JSON timeline: 17 genre skills, 18 styles, ~70 ready components, stickman, captions, beat sync. Skills only; uses the Google Flow plugin for generated assets.",
       "icon": "icon.png"
+    },
+    {
+      "path": "plugins/test",
+      "id": "test",
+      "name": "Test",
+      "version": "1.1.0",
+      "description": "Test",
+      "icon": "icon.png"
     }
   ]
 }
