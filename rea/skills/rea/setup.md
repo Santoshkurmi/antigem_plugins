@@ -57,8 +57,9 @@ Optional: `bash $S/rea-setup.sh hermes` for React Native apps, `adb` for the pho
 
 ## After installing
 
-The MCP server still has to be added to the agent: tell the user to use **Settings → REA → Add to Antigravity**
-(it lets them choose tool groups), or see `mcp.md` for Claude Code and OpenCode. A new chat (or refreshing the
+The MCP server still has to be added to the agent: tell the user to use the **REA** preset in that agent's MCP
+settings (Antigravity → MCP Servers, Claude Code → MCP, OpenCode → MCP servers); it asks for the mode and the tool
+groups. By hand: `mcp.md`. A new chat (or refreshing the
 server) is needed before the tools appear.
 
 ## Other commands

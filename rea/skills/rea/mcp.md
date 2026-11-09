@@ -43,26 +43,35 @@ Built-in ids: `core` (basics, session status, evidence), `android` (JADX, apktoo
 `~/.config/antigem/rea/tools.json` lists every tool REA has, with a short description and its size.
 
 When a call fails with "not in this server's tool groups" or "not available on this server", the tool is hidden. Tell the user to add its group to
-the server (Settings → REA → Add to Antigravity → Edit groups), or the tool to a group (Settings → REA → Tool
+the server (the REA preset in that agent's MCP settings), or the tool to a group (Settings → REA → Tool
 groups). If the user asks you to do it, edit `groups.json` (keep valid JSON, ids unchanged) and ask them to
 restart the server: changes apply on restart only.
 
 ## Adding the server
 
-- **Antigravity**: Settings → REA → Add to Antigravity, or Settings → Antigravity → MCP Servers → REA tile. The
-  app writes `mcp_config.json` for you; editing it by hand is not needed.
-- **Claude Code** (in the terminal):
+- **In AntiGem, for any agent**: the **REA** preset in that agent's MCP settings (Antigravity → MCP Servers,
+  Claude Code → MCP, OpenCode → MCP servers). It asks for the mode and the tool groups and writes the agent's
+  config; nothing has to be typed. The same agent can have several REA servers with different groups.
+- **By hand** (any agent, or outside AntiGem): a stdio server with the command
+  `/data/data/com.termux/files/usr/bin/rea-mcp` and the env above. Examples:
+  - Antigravity (`~/.gemini/config/mcp_config.json`, under `mcpServers`):
 
-  ```sh
-  claude mcp add rea -e REA_MODE=lazy -e REA_GROUPS=all -- /data/data/com.termux/files/usr/bin/rea-mcp
-  ```
+    ```json
+    "rea": { "command": "/data/data/com.termux/files/usr/bin/rea-mcp", "env": { "REA_MODE": "lazy", "REA_GROUPS": "all" } }
+    ```
 
-- **OpenCode** (`~/.config/opencode/opencode.json`):
+  - Claude Code (in the terminal):
 
-  ```json
-  { "mcp": { "rea": { "type": "local", "command": ["/data/data/com.termux/files/usr/bin/rea-mcp"],
-      "environment": { "REA_MODE": "lazy", "REA_GROUPS": "all" }, "enabled": true } } }
-  ```
+    ```sh
+    claude mcp add rea -e REA_MODE=lazy -e REA_GROUPS=all -- /data/data/com.termux/files/usr/bin/rea-mcp
+    ```
+
+  - OpenCode (`~/.config/opencode/opencode.json`):
+
+    ```json
+    { "mcp": { "rea": { "type": "local", "command": ["/data/data/com.termux/files/usr/bin/rea-mcp"],
+        "environment": { "REA_MODE": "lazy", "REA_GROUPS": "all" }, "enabled": true } } }
+    ```
 
 After adding or changing the server, the agent needs a restart of the server or a new session to see the tools.
 

@@ -2,7 +2,7 @@
 
 | Symptom | Cause and fix |
 | --- | --- |
-| No REA tools at all | Server not added or not started. Settings → REA → Add to Antigravity; restart the server; new chat. Check `command -v rea-mcp`. |
+| No REA tools at all | Server not added or not started. Add it with the REA preset in the agent's MCP settings; restart the server or start a new chat. Check `command -v rea-mcp`. |
 | Server shows Error / "Not started" | Run `rea-mcp --doctor` in the terminal and read its error. Common: REA or Node missing (install the `node` and `rea` parts), container missing (`container`). |
 | `rea-mcp: the 'ubuntu' container is not installed` | Install the Ubuntu container part (Settings → REA) or `rea-setup.sh container`. |
 | "not in this server's tool groups" / "not available on this server" | Tool hidden by groups: add its group to the server or the tool to a group (`mcp.md`), then restart the server. |

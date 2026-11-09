@@ -1,8 +1,8 @@
 # AntiGem plugins
 
-Plugins for [AntiGem](https://github.com/Santoshkurmi/antigem). Add this repository in the app:
-**Settings → Custom AntiGem Plugins → Repositories → `Santoshkurmi/antigem_plugins`**, then install a plugin from
-the list. Updates show up there when a plugin's version goes up.
+Plugins for [AntiGem](https://github.com/Santoshkurmi/antigem). AntiGem adds this repository to
+**Settings → Custom AntiGem Plugins → Repositories** by default (once; add `Santoshkurmi/antigem_plugins` again
+there if you removed it). Install a plugin from the list; updates show up there when a plugin's version goes up.
 
 | Plugin | What it is |
 | --- | --- |

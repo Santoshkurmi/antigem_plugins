@@ -37,10 +37,12 @@ Detail files (read with `get_skill_file`, name `rea`):
    - `rea-mcp --doctor` → prints which engines are ready.
 4. Then tell the user exactly what is missing and the easiest fix. Never install ~1 GB without asking:
    - **Not installed** → "Open Settings → REA · Reverse Engineering and install the parts (the 'Needed for APK
-     analysis' set), then Add to Antigravity." Offer to install it from the terminal instead (`setup.md`).
-   - **Installed, but no REA tools** → "Settings → REA → Add to Antigravity (or Settings → Antigravity → MCP
-     Servers → REA tile), then refresh the server and start a new chat." For Claude Code or OpenCode see `mcp.md`.
-   - **Server added but erroring** → ask the user to tap Restart on it in Settings → REA, and see `troubleshooting.md`.
+     analysis' set)." Offer to install it from the terminal instead (`setup.md`).
+   - **Installed, but no REA tools** → "Add REA in my MCP settings with the REA preset: Antigravity → MCP Servers,
+     Claude Code → MCP, or OpenCode → MCP servers (whichever agent this is), then restart the server or start a new
+     chat." By hand: `mcp.md`.
+   - **Server added but erroring** → ask the user to restart it in the agent's MCP settings, and see
+     `troubleshooting.md`.
 5. A call that fails with "not in this server's tool groups" means the tool exists but is hidden. Tell the user
    which group to add (Settings → REA → Tool groups, or choose more groups for the server), see `mcp.md`.
 

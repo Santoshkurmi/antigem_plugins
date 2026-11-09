@@ -213,19 +213,29 @@ function serve() {
   let nextInternal = 1;
   let catalog = null; // Promise of REA's allowed tools
   let reaInstructions = "";
+  // MCP 2026-07-28 and later: every request carries a _meta envelope (io.modelcontextprotocol/protocolVersion,
+  // …/clientCapabilities). Our own requests to REA reuse the envelope of the agent's request they serve.
+  let lastEnvelope = null;
+  const envelopeOf = (message) => {
+    const meta = message?.params?._meta;
+    if (!meta || typeof meta !== "object") return null;
+    const envelope = Object.fromEntries(Object.entries(meta).filter(([key]) => key.startsWith("io.modelcontextprotocol/")));
+    return Object.keys(envelope).length > 0 ? envelope : null;
+  };
 
-  const askRea = (method, params) => new Promise((resolve, reject) => {
+  const askRea = (method, params, source) => new Promise((resolve, reject) => {
     const id = `__rea_filter_${nextInternal++}`;
     internal.set(id, { resolve, reject });
-    toChild({ jsonrpc: "2.0", id, method, params });
+    const envelope = envelopeOf(source) ?? lastEnvelope;
+    toChild({ jsonrpc: "2.0", id, method, params: envelope ? { ...params, _meta: { ...envelope } } : params });
   });
-  const loadCatalog = () => {
+  const loadCatalog = (source) => {
     if (!catalog) {
       catalog = (async () => {
         const tools = [];
         let cursor;
         do {
-          const page = await askRea("tools/list", cursor ? { cursor } : {});
+          const page = await askRea("tools/list", cursor ? { cursor } : {}, source);
           tools.push(...(page.tools ?? []));
           cursor = page.nextCursor;
         } while (cursor);
@@ -238,7 +248,7 @@ function serve() {
 
   async function lazyList(message) {
     try {
-      const tools = await loadCatalog();
+      const tools = await loadCatalog(message);
       toClient({ jsonrpc: "2.0", id: message.id, result: { tools: [...gatewayDefinitions(groupIds), ...tools.filter((t) => direct.has(t.name))] } });
     } catch (e) {
       toClient({ jsonrpc: "2.0", id: message.id, error: { code: -32603, message: `REA did not list its tools: ${e.message}` } });
@@ -249,7 +259,7 @@ function serve() {
     const name = message.params?.name;
     const args = message.params?.arguments ?? {};
     try {
-      const tools = await loadCatalog();
+      const tools = await loadCatalog(message);
       if (name === "rea_call" || name === "rea_call_change") {
         const target = args.name;
         if (typeof target !== "string" || !target) return toolError(message.id, `Give the REA tool's name: ${name} {name: "...", arguments: {...}}.`);
@@ -278,7 +288,9 @@ function serve() {
         child.stdin.write(line + "\n");
         return;
       }
-      if (message.method === "initialize") pending.set(message.id, "initialize");
+      lastEnvelope = envelopeOf(message) ?? lastEnvelope;
+      // Server instructions come with initialize, or with server/discover from MCP 2026-07-28 on
+      if (message.method === "initialize" || message.method === "server/discover") pending.set(message.id, "initialize");
       if (message.method === "tools/list") {
         if (MODE === "lazy") return void lazyList(message);
         if (scope !== null) pending.set(message.id, "tools/list");
@@ -314,8 +326,10 @@ function serve() {
       const kind = pending.get(message.id);
       pending.delete(message.id);
       if (kind === "initialize" && message.result) {
-        reaInstructions = message.result.instructions ?? "";
-        if (MODE === "lazy") message.result.instructions = LAZY_INSTRUCTIONS;
+        if (typeof message.result.instructions === "string") {
+          reaInstructions = message.result.instructions;
+          if (MODE === "lazy") message.result.instructions = LAZY_INSTRUCTIONS;
+        }
       }
       if (kind === "tools/list" && Array.isArray(message.result?.tools)) {
         message.result.tools = message.result.tools.filter((t) => allowed(t.name));
