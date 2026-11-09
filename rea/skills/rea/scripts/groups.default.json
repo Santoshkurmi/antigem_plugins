@@ -1,0 +1,309 @@
+{
+ "version": 1,
+ "defaultSelection": [
+  "core",
+  "android",
+  "flutter",
+  "device",
+  "native"
+ ],
+ "groups": [
+  {
+   "id": "core",
+   "name": "Basics",
+   "description": "Session status, analysis settings, evidence bundles and generic file inspection. Most workflows need these.",
+   "builtin": true,
+   "tools": [
+    "binary_session",
+    "compare_artifacts",
+    "export_evidence_bundle",
+    "extract_artifact",
+    "get_evidence_bundle",
+    "import_evidence_bundle",
+    "inspect_analysis_settings",
+    "inspect_analysis_view",
+    "inspect_artifact",
+    "inspect_binary_layout",
+    "inspect_byte_entropy",
+    "inspect_sqlite_database",
+    "update_analysis_settings"
+   ]
+  },
+  {
+   "id": "android",
+   "name": "Android apps",
+   "description": "APK manifest, permissions and components, Java/Kotlin classes and methods (JADX), references, resources and strings (apktool), signatures.",
+   "builtin": true,
+   "tools": [
+    "decode_android_resources",
+    "inspect_android_class",
+    "inspect_android_method",
+    "inspect_android_package",
+    "inspect_apk_signature",
+    "inspect_apktool_client",
+    "project_android_application_graph",
+    "search_android_classes",
+    "trace_android_references"
+   ]
+  },
+  {
+   "id": "flutter",
+   "name": "Flutter",
+   "description": "Flutter build identity and the Dart AOT snapshot (libapp.so) strings.",
+   "builtin": true,
+   "tools": [
+    "identify_flutter_build",
+    "inspect_dart_aot"
+   ]
+  },
+  {
+   "id": "device",
+   "name": "Phone (adb)",
+   "description": "This phone or another device over adb: installed apps, pulling APKs, logcat, screenshots, starting and stopping apps.",
+   "builtin": true,
+   "tools": [
+    "capture_adb_screen",
+    "collect_adb_bugreport",
+    "inspect_adb_client",
+    "inspect_adb_device",
+    "inspect_adb_display",
+    "inspect_adb_package",
+    "inspect_adb_window",
+    "install_adb_package",
+    "list_adb_devices",
+    "list_adb_directory",
+    "list_adb_features",
+    "list_adb_packages",
+    "list_adb_processes",
+    "list_adb_services",
+    "pull_adb_file",
+    "pull_adb_package",
+    "push_adb_file",
+    "read_adb_logcat",
+    "read_adb_setting",
+    "resolve_adb_packages",
+    "start_adb_activity",
+    "start_adb_app",
+    "stop_adb_app",
+    "uninstall_adb_package"
+   ]
+  },
+  {
+   "id": "native",
+   "name": "Native code",
+   "description": "Static tools for .so and other binaries: objdump, rizin commands, ELF notes, exports, Rust/Go/kernel modules, WebAssembly, Python bytecode.",
+   "builtin": true,
+   "tools": [
+    "compare_wasm_interfaces",
+    "execute_rizin_command",
+    "inspect_elf_notes",
+    "inspect_erlang_beam",
+    "inspect_go_binary",
+    "inspect_gpu_code_objects",
+    "inspect_kernel_module",
+    "inspect_model_artifact",
+    "inspect_native_exports",
+    "inspect_python_pyc",
+    "inspect_rust_binary",
+    "inspect_wasm_artifact",
+    "inspect_with_objdump"
+   ]
+  },
+  {
+   "id": "javascript",
+   "name": "JavaScript & React Native",
+   "description": "Plain JavaScript bundles (React Native without Hermes, Electron, web apps): reconstruct, recover sources, trace features.",
+   "builtin": true,
+   "tools": [
+    "analyze_javascript_application",
+    "compare_application_versions",
+    "compare_bundles",
+    "compare_javascript_export_shapes",
+    "compare_source_to_bundle",
+    "list_javascript_runtime_targets",
+    "observe_javascript_runtime",
+    "reconcile_javascript_runtime",
+    "recover_javascript_sources",
+    "trace_application_feature",
+    "trace_javascript_semantics"
+   ]
+  },
+  {
+   "id": "unity",
+   "name": "Unity games",
+   "description": "Unity IL2CPP global-metadata.dat: names, owners and string literals.",
+   "builtin": true,
+   "tools": [
+    "inspect_il2cpp_metadata"
+   ]
+  },
+  {
+   "id": "debug",
+   "name": "Debuggers",
+   "description": "GDB and rizin debug sessions, recorded crashes.",
+   "builtin": true,
+   "tools": [
+    "close_gdb_session",
+    "close_rizin_debug_session",
+    "gdb_console",
+    "gdb_session_status",
+    "inspect_recorded_crash",
+    "rizin_debug_command",
+    "rizin_debug_session_status",
+    "start_gdb_session",
+    "start_rizin_debug_session"
+   ]
+  },
+  {
+   "id": "frida",
+   "name": "Frida",
+   "description": "Dynamic instrumentation with Frida (needs a reachable frida-server: root, or frida-gadget in a repackaged APK).",
+   "builtin": true,
+   "tools": [
+    "close_frida_session",
+    "frida_session_status",
+    "instrument_with_frida",
+    "list_frida_devices",
+    "list_frida_processes",
+    "load_frida_script",
+    "resume_frida_session",
+    "start_frida_session",
+    "unload_frida_script"
+   ]
+  },
+  {
+   "id": "firmware",
+   "name": "Firmware",
+   "description": "Firmware images: regions, extraction, device trees, signal recordings.",
+   "builtin": true,
+   "tools": [
+    "decode_signal_recording",
+    "extract_firmware",
+    "inspect_devicetree",
+    "inspect_firmware_regions",
+    "inspect_signal_decoders"
+   ]
+  },
+  {
+   "id": "network",
+   "name": "Network captures",
+   "description": "Saved packet captures (pcap/pcapng) through tshark: protocols, fields and records.",
+   "builtin": true,
+   "tools": [
+    "inspect_packet_capture",
+    "inspect_packet_fields",
+    "inspect_pcap_capture",
+    "inspect_pcap_client"
+   ]
+  },
+  {
+   "id": "apple",
+   "name": "Apple / iOS",
+   "description": "iOS and macOS apps: Mach-O, Swift and Objective-C metadata, plists, asset catalogs, storyboards.",
+   "builtin": true,
+   "tools": [
+    "analyze_swift_types",
+    "decode_interface_builder",
+    "demangle_swift",
+    "get_objc_classes",
+    "get_objc_protocols",
+    "inspect_apple_ips",
+    "inspect_asset_catalog",
+    "inspect_keyed_archive",
+    "inspect_macho",
+    "inspect_native_dispatch_metadata",
+    "inspect_plist",
+    "open_bundle_resources",
+    "project_apple_application_graph",
+    "trace_dylib_resolution"
+   ]
+  },
+  {
+   "id": "windows",
+   "name": "Windows & .NET",
+   "description": "Windows PE files (imports, resources, certificates, load config) and .NET assemblies (ILSpy needed for managed decompiling).",
+   "builtin": true,
+   "tools": [
+    "compare_managed_members",
+    "import_managed_reconstruction",
+    "inspect_managed_artifact",
+    "inspect_managed_members",
+    "inspect_managed_native_boundaries",
+    "inspect_pe_certificates",
+    "inspect_pe_imports",
+    "inspect_pe_load_config",
+    "inspect_pe_resources",
+    "project_managed_application_graph",
+    "verify_managed_native_boundaries"
+   ]
+  },
+  {
+   "id": "decompiler",
+   "name": "Decompiler session",
+   "description": "Functions, pseudo-code, strings, cross references and annotations of an opened binary. Needs a decompiler engine (Ghidra, IDA, Hopper or Kuna), which AntiGem does not install.",
+   "builtin": true,
+   "tools": [
+    "address_name",
+    "address_to_file_offset",
+    "analyze_function",
+    "annotate_native_function",
+    "batch_decompile",
+    "binary_overview",
+    "build_call_path",
+    "close_binary",
+    "comment",
+    "compare_functions",
+    "current_address",
+    "current_document",
+    "current_procedure",
+    "decompile_all",
+    "find_xrefs_to_name",
+    "get_call_graph",
+    "get_navigation_context",
+    "goto_address",
+    "inline_comment",
+    "inspect_address_context",
+    "inspect_native_api",
+    "inspect_native_data_type",
+    "inspect_native_instruction",
+    "inspect_native_load_image",
+    "list_architectures",
+    "list_bookmarks",
+    "list_documents",
+    "list_names",
+    "list_procedures",
+    "list_segments",
+    "list_strings",
+    "match_native_functions",
+    "next_address",
+    "observe_native_calls",
+    "open_binary",
+    "prev_address",
+    "procedure_address",
+    "procedure_assembly",
+    "procedure_callees",
+    "procedure_callers",
+    "procedure_info",
+    "procedure_pseudo_code",
+    "procedure_references",
+    "read_bytes",
+    "read_function_instructions",
+    "resolve_containing_procedure",
+    "resolve_native_call_targets",
+    "search_bytes",
+    "search_procedures",
+    "search_strings",
+    "set_address_name",
+    "set_addresses_names",
+    "set_bookmark",
+    "set_comment",
+    "set_inline_comment",
+    "trace_call_path",
+    "trace_feature",
+    "trace_native_values",
+    "unset_bookmark",
+    "xrefs"
+   ]
+  }
+ ]
+}

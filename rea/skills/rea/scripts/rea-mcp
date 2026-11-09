@@ -1,0 +1,52 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# AntiGem · REA MCP server. Runs REA (Reverse Engineer Anything) in the proot-distro Ubuntu container
+# and speaks MCP over stdio, showing only the tools of the groups in REA_GROUPS.
+#
+#   rea-mcp               MCP server over stdio (the command agents start)
+#   rea-mcp --list-tools  print every REA tool as JSON
+#   rea-mcp --doctor      run `rea doctor` (which tools and engines are ready)
+#
+# Environment (set in the MCP server's env):
+#   REA_GROUPS        comma separated tool group ids from ~/.config/antigem/rea/groups.json, or "all"
+#   REA_MODE          "direct" (default): every allowed tool is its own MCP tool (each costs context);
+#                     "lazy": four small gateway tools (rea_tools, rea_tool_info, rea_call, rea_call_change), ≈1k tokens
+#   REA_DIRECT_GROUPS with REA_MODE=lazy: groups whose tools are also offered directly
+#   REA_CONTAINER     proot-distro container name (default: ubuntu)
+#   REA_MCP_OUTPUT_SCHEMA_PROFILE    "off" (default here) or "full". Output schemas are about 90% of REA's tool
+#                                    list (1.2 MB for 61 tools), so they are off unless asked for.
+#
+# Installed by rea-setup.sh (step "launcher") from antigem_plugins/rea/skills/rea/scripts/.
+P=/data/data/com.termux/files/usr
+H=/data/data/com.termux/files/home
+export PREFIX="$P" PATH="$P/bin:$PATH" TMPDIR="${TMPDIR:-$P/tmp}"
+C="${REA_CONTAINER:-ubuntu}"
+S="$P/share/antigem-rea"
+
+if [ ! -d "$P/var/lib/proot-distro/containers/$C/rootfs/usr" ]; then
+    echo "rea-mcp: the '$C' container is not installed. Install REA in AntiGem Settings → REA, or run: bash $S/rea-setup.sh android" >&2
+    exit 1
+fi
+
+envs=(
+    HOME=/root TERM=dumb LANG=C.UTF-8
+    PATH=/root/tools/node/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    "REA_GROUPS=${REA_GROUPS:-all}"
+    "REA_MODE=${REA_MODE:-direct}"
+    "REA_DIRECT_GROUPS=${REA_DIRECT_GROUPS:-}"
+    "REA_GROUPS_FILE=$H/.config/antigem/rea/groups.json"
+    REA_JADX_MCP_JAR=/root/tools/jadx-headless-mcp-0.7.1-all.jar
+    REA_APKTOOL_COMMAND=/usr/local/bin/apktool
+    REA_BINWALK_COMMAND=/usr/bin/binwalk
+    "REA_RIZIN_COMMAND=$P/bin/rizin"
+    "REA_ADB_PATH=$P/bin/adb"
+    "REA_MCP_OUTPUT_SCHEMA_PROFILE=${REA_MCP_OUTPUT_SCHEMA_PROFILE:-off}"
+)
+# Optional REA settings pass through when set
+for v in REA_MCP_INPUT_SCHEMA_PROFILE REA_MCP_MAX_RESPONSE_BYTES REA_JADX_OPERATION_TIMEOUT_MS GHIDRA_INSTALL_DIR; do
+    [ -n "${!v:-}" ] && envs+=("$v=${!v}")
+done
+
+# Termux paths often come as /data/user/0/com.termux/... (Android's canonical form); proot-distro binds only
+# /data/data/com.termux/..., so bind the home under the other spelling too
+exec proot-distro login "$C" --shared-tmp -b "$H:/data/user/0/com.termux/files/home" -- \
+    /usr/bin/env -i "${envs[@]}" node "$S/rea-filter.mjs" "$@"

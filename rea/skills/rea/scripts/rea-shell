@@ -1,0 +1,39 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# AntiGem · run a command in REA's Ubuntu container with REA's tools on PATH (node, rea, apktool, jadx jar,
+# hbc-decompiler, objdump, gdb, binwalk). Paths under the Termux home work the same inside.
+#
+#   rea-shell                                  interactive shell in the container
+#   rea-shell 'hbc-decompiler in.bundle out.js'  one command (runs in the current folder)
+#
+# Installed by rea-setup.sh (step "launcher") from antigem_plugins/rea/skills/rea/scripts/.
+P=/data/data/com.termux/files/usr
+H=/data/data/com.termux/files/home
+export PREFIX="$P" PATH="$P/bin:$PATH" TMPDIR="${TMPDIR:-$P/tmp}"
+C="${REA_CONTAINER:-ubuntu}"
+
+if [ ! -d "$P/var/lib/proot-distro/containers/$C/rootfs/usr" ]; then
+    echo "rea-shell: the '$C' container is not installed (AntiGem Settings → REA)." >&2
+    exit 1
+fi
+
+envs=(
+    HOME=/root "TERM=${TERM:-xterm-256color}" LANG=C.UTF-8
+    PATH=/root/tools/node/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    REA_JADX_MCP_JAR=/root/tools/jadx-headless-mcp-0.7.1-all.jar
+    REA_APKTOOL_COMMAND=/usr/local/bin/apktool
+    REA_BINWALK_COMMAND=/usr/bin/binwalk
+    "REA_RIZIN_COMMAND=$P/bin/rizin"
+    "REA_ADB_PATH=$P/bin/adb"
+)
+workdir=/root
+case "$PWD" in
+    /data/data/com.termux/files/home*|/sdcard*|/storage/*) workdir="$PWD" ;;
+    /data/user/0/com.termux/files/home*) workdir="/data/data/com.termux/files/home${PWD#/data/user/0/com.termux/files/home}" ;;
+esac
+# Also bind the home as /data/user/0/... (Android's canonical spelling of Termux paths)
+login=(proot-distro login "$C" --shared-tmp -b "$H:/data/user/0/com.termux/files/home" -w "$workdir" --)
+
+if [ $# -eq 0 ]; then
+    exec "${login[@]}" /usr/bin/env -i "${envs[@]}" /bin/bash -l
+fi
+exec "${login[@]}" /usr/bin/env -i "${envs[@]}" /bin/bash -c "$*"
