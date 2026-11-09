@@ -7,6 +7,7 @@ there if you removed it). Install a plugin from the list; updates show up there 
 | Plugin | What it is |
 | --- | --- |
 | [`rea`](rea/) | Skills-only plugin for **REA** (Reverse Engineer Anything): teaches agents to set up REA, check its MCP server and analyze APKs, installed apps, Flutter, React Native and native code. Also holds REA's setup scripts. |
+| [`android-dev`](android-dev/) | Skills-only plugin for **building Android apps on the phone**: Kotlin / Java with Jetpack Compose, Flutter and React Native, in the same proot-distro Ubuntu container as REA. Teaches agents to check and install the tools, create projects, build and install APKs. Also holds the setup scripts. |
 
 ## REA
 
@@ -49,3 +50,29 @@ Push to a branch or fork, then in the app use **Settings → REA → Setup files
 New tools appear in the app under *Tool groups → In no group*. To give them a built-in group, add their names to
 `groups.default.json` (the app adds new built-in groups to users' files, but does not change groups users
 already have), then release as above.
+
+## Android Development
+
+```
+android-dev/
+  manifest.json
+  icon.svg
+  skills/
+    android-dev.md          ← main skill: check the setup, where projects go, create / build / install
+    android-dev/            ← detail files the main skill points to
+      setup.md  kotlin-compose.md  flutter.md  react-native.md  run-on-phone.md  troubleshooting.md
+      scripts/              ← downloaded by the app (Settings → Android Development) and runnable by agents
+        files.json          ← version + file list the app downloads
+        android-setup.sh    ← modular installer: container base java sdk launcher flutter node ndk adb, test, gradle-dist …
+        adev                ← runs a command in the container with Java, the SDK, Gradle, Flutter, Node on PATH
+        adev-new            ← creates a hello-world Compose / Flutter / React Native project
+```
+
+The app downloads `scripts/` into `$PREFIX/share/antigem-android/` and every install button runs
+`android-setup.sh <step>`; the test builds run `android-setup.sh test compose|flutter|rn`. Releasing works as for
+REA: raise `scripts/files.json`'s version when scripts change, and `manifest.json` + `antigem-plugins.json` when
+anything changes.
+
+The template's versions are pinned in `adev-new` (tested on a phone); `adev-new compose … --latest` tries the
+newest ones of the same major versions. When updating the pins, build the template once on a phone
+(`android-setup.sh test compose`).

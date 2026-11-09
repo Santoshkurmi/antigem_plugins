@@ -1,0 +1,353 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# AntiGem · create a new Android app project (a working hello world) in the Termux home.
+#
+#   adev-new compose <dir> [--package com.example.hello] [--name "Hello"] [--latest]   Kotlin + Jetpack Compose
+#   adev-new flutter <dir> [--package com.example.hello]                      Flutter (flutter create)
+#   adev-new rn      <dir> [--name HelloApp]                                  React Native (community CLI)
+#
+# Then build it:  cd <dir> && adev ./gradlew assembleDebug        (compose)
+#                 cd <dir> && adev flutter build apk --debug       (flutter)
+#                 cd <dir>/android && adev ./gradlew assembleDebug (rn)
+# Installed by android-setup.sh (step "launcher").
+set -uo pipefail
+
+die() { printf '✗ %s\n' "$*" >&2; exit 1; }
+ok() { printf '✓ %s\n' "$*"; }
+say() { printf '==> %s\n' "$*"; }
+
+usage() { sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; }
+
+kind="${1:-}"; dir="${2:-}"
+[ -n "$kind" ] && [ -n "$dir" ] || { usage; exit 1; }
+shift 2
+pkg=""; name=""; newest=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --package) pkg="${2:-}"; shift 2 ;;
+        --name) name="${2:-}"; shift 2 ;;
+        --latest) newest=1; shift ;;
+        *) die "Unknown option: $1" ;;
+    esac
+done
+
+case "$dir" in /*) ;; *) dir="$PWD/$dir" ;; esac
+case "$dir" in
+    /data/data/com.termux/files/home/*|/data/user/0/com.termux/files/home/*) ;;
+    *) die "Create projects in the Termux home (~/...): Gradle, Flutter and npm need a real Linux file system, and the container sees only the home." ;;
+esac
+[ -e "$dir" ] && [ -n "$(ls -A "$dir" 2>/dev/null)" ] && die "$dir already exists and is not empty"
+base="$(basename "$dir")"
+slug="$(printf '%s' "$base" | tr 'A-Z' 'a-z' | tr -c 'a-z0-9\n' '_' | sed 's/^_*//; s/_*$//; s/__*/_/g')"
+case "$slug" in [a-z]*) ;; *) slug="app_$slug" ;; esac
+[ -n "$pkg" ] || pkg="com.example.$(printf '%s' "$slug" | tr -d '_')"
+printf '%s' "$pkg" | grep -Eq '^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$' || die "Bad package name: $pkg (like com.example.hello)"
+
+# Latest stable version of a maven artifact within a major version, else the fallback
+latest() { # latest <metadata url> <major prefix> <fallback>
+    local v
+    v=$(curl -fsSL --max-time 15 "$1" 2>/dev/null | grep -oE '<version>[0-9]+(\.[0-9]+)*</version>' | sed 's/<[^>]*>//g' | grep -E "^$2\." | sort -V | tail -1)
+    echo "${v:-$3}"
+}
+GOOGLE=https://dl.google.com/dl/android/maven2
+CENTRAL=https://repo1.maven.org/maven2
+
+new_compose() {
+    local app="${name:-$(printf '%s' "$base" | sed 's/[-_]/ /g')}"
+    # Versions this template was built with on a phone (AGP 9.5.1 needs Gradle 9.x; these AndroidX releases
+    # need compileSdk 37). --latest looks up the newest stable ones of the same major versions instead: newer
+    # libraries may then need a newer compileSdk (the build says which).
+    local agp=9.5.1 kotlin=2.4.21 bom=2026.09.00 activity=1.13.0 core=1.19.1 lifecycle=2.11.0 gradle=9.9.0
+    if [ -n "$newest" ]; then
+        say "Looking up the newest versions (AGP 9, Kotlin 2, Gradle 9)…"
+        agp=$(latest "$GOOGLE/com/android/tools/build/gradle/maven-metadata.xml" 9 $agp)
+        kotlin=$(latest "$CENTRAL/org/jetbrains/kotlin/kotlin-gradle-plugin/maven-metadata.xml" 2 $kotlin)
+        bom=$(latest "$GOOGLE/androidx/compose/compose-bom/maven-metadata.xml" 20[0-9][0-9] $bom)
+        activity=$(latest "$GOOGLE/androidx/activity/activity-compose/maven-metadata.xml" 1 $activity)
+        core=$(latest "$GOOGLE/androidx/core/core-ktx/maven-metadata.xml" 1 $core)
+        lifecycle=$(latest "$GOOGLE/androidx/lifecycle/lifecycle-runtime-ktx/maven-metadata.xml" 2 $lifecycle)
+        gradle=$(curl -fsSL --max-time 15 https://services.gradle.org/versions/current 2>/dev/null | grep -oE '"version" *: *"9\.[0-9.]+"' | grep -oE '9\.[0-9.]+' || echo $gradle)
+    fi
+    echo "AGP $agp · Kotlin $kotlin · Compose BOM $bom · Gradle $gradle"
+
+    local src="$dir/app/src/main/java/$(printf '%s' "$pkg" | tr . /)"
+    mkdir -p "$src" "$dir/app/src/main/res/values" "$dir/app/src/main/res/drawable" "$dir/gradle/wrapper" || die "Cannot create $dir"
+
+    cat > "$dir/settings.gradle.kts" <<EOF
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = "$base"
+include(":app")
+EOF
+    cat > "$dir/build.gradle.kts" <<'EOF'
+plugins {
+    alias(libs.plugins.android.application) apply false
+    // AGP 9 compiles Kotlin itself; this only picks the Kotlin version, which must match the Compose compiler plugin
+    alias(libs.plugins.kotlin.android) apply false
+    alias(libs.plugins.kotlin.compose) apply false
+}
+EOF
+    cat > "$dir/gradle.properties" <<'EOF'
+android.useAndroidX=true
+android.nonTransitiveRClass=true
+kotlin.code.style=official
+EOF
+    cat > "$dir/gradle/libs.versions.toml" <<EOF
+[versions]
+agp = "$agp"
+kotlin = "$kotlin"
+composeBom = "$bom"
+activityCompose = "$activity"
+coreKtx = "$core"
+lifecycle = "$lifecycle"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+EOF
+    cat > "$dir/app/build.gradle.kts" <<EOF
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
+}
+
+android {
+    namespace = "$pkg"
+    compileSdk = 37
+
+    defaultConfig {
+        applicationId = "$pkg"
+        minSdk = 24
+        targetSdk = 37
+        versionCode = 1
+        versionName = "1.0"
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            // Signed with the debug key so the release APK installs too; use your own key to publish
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    buildFeatures {
+        compose = true
+    }
+}
+
+dependencies {
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+}
+EOF
+    cat > "$dir/app/src/main/AndroidManifest.xml" <<'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.App">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
+EOF
+    cat > "$dir/app/src/main/res/values/strings.xml" <<EOF
+<resources>
+    <string name="app_name">$app</string>
+</resources>
+EOF
+    cat > "$dir/app/src/main/res/values/themes.xml" <<'EOF'
+<resources>
+    <style name="Theme.App" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
+EOF
+    cat > "$dir/app/src/main/res/drawable/ic_launcher.xml" <<'EOF'
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#3DDC84" android:pathData="M0,0h108v108h-108z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M54,30a24,24 0 1,0 0.1,0z" />
+    <path android:fillColor="#3DDC84" android:pathData="M54,40a14,14 0 1,0 0.1,0z" />
+</vector>
+EOF
+    cat > "$src/MainActivity.kt" <<EOF
+package $pkg
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            MaterialTheme {
+                Scaffold(modifier = Modifier.fillMaxSize()) { padding ->
+                    Greeting("Android", Modifier.padding(padding))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun Greeting(name: String, modifier: Modifier = Modifier) {
+    var taps by rememberSaveable { mutableIntStateOf(0) }
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Hello \$name!", style = MaterialTheme.typography.headlineMedium)
+        Button(onClick = { taps++ }) { Text("Tapped \$taps times") }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GreetingPreview() {
+    MaterialTheme { Greeting("Android") }
+}
+EOF
+    cat > "$dir/.gitignore" <<'EOF'
+*.iml
+.gradle/
+/local.properties
+.idea/
+.DS_Store
+build/
+.kotlin/
+EOF
+    say "Downloading the Gradle $gradle wrapper…"
+    local raw="https://raw.githubusercontent.com/gradle/gradle/v$gradle"
+    curl -fsSL --retry 3 -o "$dir/gradlew" "$raw/gradlew" &&
+        curl -fsSL --retry 3 -o "$dir/gradle/wrapper/gradle-wrapper.jar" "$raw/gradle/wrapper/gradle-wrapper.jar" &&
+        curl -fsSL --retry 3 -o "$dir/gradlew.bat" "$raw/gradlew.bat" || die "Could not download the Gradle wrapper"
+    chmod 755 "$dir/gradlew"
+    local sum
+    sum=$(curl -fsSL --retry 3 --max-time 30 "https://services.gradle.org/distributions/gradle-$gradle-bin.zip.sha256" 2>/dev/null)
+    [ ${#sum} -eq 64 ] || sum=""
+    cat > "$dir/gradle/wrapper/gradle-wrapper.properties" <<EOF
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\\://services.gradle.org/distributions/gradle-$gradle-bin.zip
+networkTimeout=30000
+# GitHub (where Gradle's zips live) sometimes answers 5xx: retry instead of failing the build
+retries=6
+retryBackOffMs=10000
+validateDistributionUrl=true
+${sum:+distributionSha256Sum=$sum
+}zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+EOF
+    ok "Compose project '$app' ($pkg) created in $dir"
+    echo "Build:  cd $dir && adev ./gradlew assembleDebug"
+    echo "APK:    $dir/app/build/outputs/apk/debug/app-debug.apk"
+}
+
+new_flutter() {
+    command -v adev >/dev/null || die "adev is missing: run android-setup.sh launcher"
+    local org="${pkg%.*}"
+    local project="$slug"
+    say "flutter create ($project, $pkg)…"
+    mkdir -p "$(dirname "$dir")"
+    adev "flutter create --org '$org' --project-name '$project' --platforms android '$dir'" || die "flutter create failed"
+    # The NDK is only needed for C/C++; Google's has no arm64 Linux build (AGP would download 700 MB of x86 tools)
+    sed -i '/^ *ndkVersion *= *flutter.ndkVersion/d' "$dir/android/app/build.gradle.kts" 2>/dev/null
+    # flutter create names the package <org>.<project>; use the one asked for
+    if [ "$org.$project" != "$pkg" ]; then
+        # only the applicationId: the namespace must stay the Kotlin package of MainActivity
+        sed -i "s/^\( *applicationId *= *\)\"$org\.$project\"/\1\"$pkg\"/" "$dir/android/app/build.gradle.kts" 2>/dev/null
+    fi
+    ok "Flutter project created in $dir"
+    echo "Build:  cd $dir && adev flutter build apk --debug"
+    echo "APK:    $dir/build/app/outputs/flutter-apk/app-debug.apk"
+}
+
+new_rn() {
+    command -v adev >/dev/null || die "adev is missing: run android-setup.sh launcher"
+    local app="${name:-$(printf '%s' "$base" | sed -E 's/(^|[-_ ])([a-z])/\U\2/g; s/[^A-Za-z0-9]//g')}"
+    printf '%s' "$app" | grep -Eq '^[A-Za-z][A-Za-z0-9]*$' || die "Bad app name: $app (letters and digits, like HelloApp)"
+    say "React Native init ($app, $pkg): npm downloads about 300 MB the first time…"
+    mkdir -p "$(dirname "$dir")"
+    adev "npx --yes @react-native-community/cli@latest init '$app' --directory '$dir' --package-name '$pkg' --skip-git-init --install-pods false --pm npm" \
+        || die "react-native init failed"
+    ok "React Native project '$app' created in $dir"
+    echo "Build:  cd $dir/android && adev ./gradlew assembleDebug   (needs the ndk step: React Native compiles C++)"
+    echo "Debug APKs load JS from Metro: cd $dir && adev npx react-native start"
+    echo "APK:    $dir/android/app/build/outputs/apk/debug/app-debug.apk"
+}
+
+case "$kind" in
+    compose|kotlin) new_compose ;;
+    flutter) new_flutter ;;
+    rn|react-native) new_rn ;;
+    -h|--help|help) usage ;;
+    *) usage; die "Unknown kind: $kind (compose, flutter or rn)" ;;
+esac

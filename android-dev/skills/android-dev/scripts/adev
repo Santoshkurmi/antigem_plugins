@@ -1,0 +1,49 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# AntiGem · run a command in the Ubuntu container with the Android tools on PATH: java, sdkmanager, gradle (through
+# ./gradlew), flutter, dart, node, npm, npx, adb. Paths under the Termux home work the same inside.
+#
+#   adev                                 interactive shell in the container
+#   adev './gradlew assembleDebug'       one command, run in the current folder
+#   adev flutter build apk --debug       the same, without quotes for simple commands
+#
+# Keep projects in the Termux home (~/...), not on /sdcard: Gradle and npm need a real Linux file system.
+# Installed by android-setup.sh (step "launcher") from antigem_plugins/android-dev/skills/android-dev/scripts/.
+P=/data/data/com.termux/files/usr
+H=/data/data/com.termux/files/home
+export PREFIX="$P" PATH="$P/bin:$PATH" TMPDIR="${TMPDIR:-$P/tmp}"
+C="${ADEV_CONTAINER:-ubuntu}"
+SDK=/root/android-sdk
+
+if [ ! -d "$P/var/lib/proot-distro/containers/$C/rootfs/usr" ]; then
+    echo "adev: the '$C' container is not installed (AntiGem Settings → Android Development, or: bash $P/share/antigem-android/android-setup.sh kotlin)." >&2
+    exit 1
+fi
+
+envs=(
+    HOME=/root "TERM=${TERM:-xterm-256color}" LANG=C.UTF-8 LC_ALL=C.UTF-8
+    PATH=/root/tools/adev-bin:/root/tools/flutter/bin:/root/tools/node/bin:$SDK/cmdline-tools/latest/bin:$SDK/platform-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64
+    ANDROID_HOME=$SDK ANDROID_SDK_ROOT=$SDK
+    FLUTTER_SUPPRESS_ANALYTICS=true NEXT_TELEMETRY_DISABLED=1
+    # React Native's CLI and Gradle plugin: no Metro / packager terminal window to open from proot
+    RCT_NO_LAUNCH_PACKAGER=1
+    CI="${CI:-}"
+    # Builds are arm64-v8a only (this phone); ADEV_ALL_ABIS=1 builds every ABI (slow, better on a PC)
+    "ADEV_ALL_ABIS=${ADEV_ALL_ABIS:-}"
+)
+# Pass through a few settings when set
+for v in GRADLE_OPTS JAVA_OPTS ANDROID_SERIAL NODE_OPTIONS; do
+    [ -n "${!v:-}" ] && envs+=("$v=${!v}")
+done
+workdir=/root
+case "$PWD" in
+    /data/data/com.termux/files/home*|/sdcard*|/storage/*) workdir="$PWD" ;;
+    /data/user/0/com.termux/files/home*) workdir="/data/data/com.termux/files/home${PWD#/data/user/0/com.termux/files/home}" ;;
+esac
+# Also bind the home as /data/user/0/... (Android's canonical spelling of Termux paths)
+login=(proot-distro login "$C" --shared-tmp -b "$H:/data/user/0/com.termux/files/home" -w "$workdir" --)
+
+if [ $# -eq 0 ]; then
+    exec "${login[@]}" /usr/bin/env -i "${envs[@]}" /bin/bash -l
+fi
+exec "${login[@]}" /usr/bin/env -i "${envs[@]}" /bin/bash -c "$*"
