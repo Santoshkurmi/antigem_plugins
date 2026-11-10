@@ -1,6 +1,7 @@
 # Workflows
 
-Recipes for common browser tasks. Each assumes you locked the tab (`browser_lock`) and will unlock it at the end.
+Recipes for common browser tasks. Each assumes you turned on the agent lock (`browser_lock`, once; it follows you to
+new tabs) and will release it at the end (`browser_lock` `locked=false`, no `tab_id`).
 
 ## Search a site and open a result
 
@@ -31,16 +32,17 @@ Fields with autocomplete (addresses, cities, airports): `left_click` the field, 
 
 ## Logins and anything secret
 
-Do not type passwords, card numbers or 2FA codes, and do not complete captchas. Unlock the tab
-(`browser_lock` `locked=false`), switch the user to it (`browser_switch_tab`), and ask them to sign in and tell
-you when they are done. Then lock again and continue. Google sign-in pages also turn off the browser's DevTools, so
+Do not type passwords, card numbers or 2FA codes, and do not complete captchas. Release the tab
+(`browser_lock` `locked=false` `tab_id=<it>`), switch the user to it (`browser_switch_tab`), and ask them to sign
+in and tell you when they are done. Then lock it again (`browser_lock` `tab_id=<it>`) and continue. Google sign-in pages also turn off the browser's DevTools, so
 automation there is limited anyway.
 
 ## Multi-page tasks (lists, pagination, comparisons)
 
 - Read a list page with `browser_get_page_text` (fast) or `browser_find` (for refs).
 - Open items in new tabs if you need to come back: `browser_open_url` with the item's `href` (from
-  `browser_read_page`) and `new_tab=true`. Keep track of the tab ids and close them afterwards.
+  `browser_read_page`) and `new_tab=true`; the agent lock covers them. Keep track of the tab ids and close them
+  afterwards.
 - For "next page" use `browser_find` "next page"; check the URL in the click output to confirm the move.
 
 ## Read or extract data

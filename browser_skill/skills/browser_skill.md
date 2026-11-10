@@ -30,31 +30,43 @@ missing, stop and tell the user how to add the **Browser Automation** MCP:
 1. **Pick a tab.** Use `browser_open_url` with `new_tab=true` for your own work, so you don't replace the page the
    user has open. Use the user's current tab only when the task is about that page. Omitting `tab_id` means the
    active tab; keep the `tab_id` the tools return and pass it every time once you have several tabs.
-2. **Lock it** with `browser_lock` (see section 2) for any task of more than one or two steps.
+2. **Lock** with `browser_lock` once (see section 2) for any task of more than one or two steps. The lock then
+   follows you to every tab you use or open.
 3. **Look** with the cheapest tool that answers your question (section 3). You get refs like `ref_12`.
 4. **Act on refs** with `browser_computer` and `browser_form_input` (section 4). Chain steps you can predict in
    one `browser_batch` call (section 6).
 5. **Check** each result. Tool outputs say when the page changed, a new tab opened or a dialog appeared; read the
    page again or take a screenshot when unsure (section 7).
-6. **Unlock** with `browser_lock` `locked=false` when you are done. Always do this, also when you stop because of
-   an error or to ask the user something.
+6. **Unlock** with `browser_lock` `locked=false` (no `tab_id`) when you are done: it releases every locked tab.
+   Always do this, also when you stop because of an error or to ask the user something.
 
 ## 2. Locking: keep the user's touches, the keyboard and zoom out of your way
 
-- Every browser tool call already protects the tab for about 3 seconds: no soft keyboard pops up when a field
-  gets focus, and the page does not zoom in on it.
-- `browser_lock` (default `locked=true`) holds that until you unlock, and also blocks the user's touches on the
-  page. The user sees an "AI controls this tab · Unlock" button. Pages then behave the same from step to step.
-  **Lock at the start of a multi-step task and unlock at the end.**
-- The user can tap Unlock at any time. Signs that they did:
+- Every browser tool call already blocks the soft keyboard on that tab for about 3 seconds, so focusing a field
+  never opens it. The user can still touch and zoom the page then.
+- `browser_lock` (default `locked=true`) turns on the **agent lock** for your task, with no timeout:
+  - the tab you call it on (`tab_id`, or the active tab) is locked at once;
+  - every tab you use or open while the lock is on is locked too: `browser_open_url` with `new_tab=true`, and
+    popups or new tabs opened by your clicks. Outputs show it (`[mobile view, locked]`, "locked like this one");
+  - on locked tabs the user's touches are blocked and the keyboard and zoom stay put, so pages behave the same from
+    step to step. The user sees an "AI controls this tab · Unlock" button, and an "AI" badge on the tab in the tab
+    overview.
+
+  **Lock once at the start of a multi-step task.** Don't lock again for each new tab.
+- `browser_lock` `locked=false` **without** `tab_id` turns the lock off and releases every locked tab; its output
+  lists them. Do this when you finish. With `tab_id` it releases only that tab, which then stays unlocked until
+  you lock it again. The output says when a tab was not locked, and lists the tabs that still are.
+- The user can tap Unlock on any tab. That tab then stays unlocked; the lock does not take it back by itself.
+  Signs that it happened:
   - a tool output starts with "Note: the user unlocked this tab…";
   - `browser_list_tabs` no longer shows `"lockedByAgent": true` for the tab;
   - the page changed in ways your actions did not cause: another URL, scrolled, a menu opened or closed, fields
     filled.
 
   When you see this in the middle of a task: read the page again (`browser_find` / `browser_read_page`, or a
-  screenshot), because your refs and coordinates may be stale. Then call `browser_lock` again and continue.
-  If the user unlocks a second time during the same task, they want control: stop and ask them how to go on.
+  screenshot), because your refs and coordinates may be stale. Then lock that tab again with `browser_lock`
+  `tab_id=<it>` and continue. If the user unlocks a second time during the same task, they want control: stop and
+  ask them how to go on.
 - A tab that a browser extension (e.g. Google Flow) is automating refuses your input; use another tab.
 
 ## 3. Looking: the cheapest tool that answers the question

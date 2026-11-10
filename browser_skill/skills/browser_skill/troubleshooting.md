@@ -4,7 +4,9 @@ What a tool's message means and what to do. The messages are quoted as the tools
 
 | Message | Meaning | Do |
 | --- | --- | --- |
-| "Note: the user unlocked this tab…" | The user tapped Unlock and may have used the page | Read the page again, then `browser_lock` again if your task is not finished (ask the user if it happens twice) |
+| "Note: the user unlocked this tab…" | The user tapped Unlock and may have used the page | Read the page again, then `browser_lock` `tab_id=<it>` if your task is not finished (ask the user if it happens twice) |
+| "Tab … was not locked. Still locked: …" | `locked=false` with a `tab_id` that was not locked | To release everything, call `browser_lock` `locked=false` without `tab_id` |
+| "Agent lock off. No tab was locked." | Nothing was locked | Nothing to do |
 | "No element ref_N … on the page any more" | The element was removed, or the page redrew it in a way that could not be matched | `browser_find` / `browser_read_page` for a fresh ref |
 | "ref_N is not from this page…" | The page was reloaded or replaced, or the app restarted, since you read it | Read the page again |
 | "…had been redrawn by the page; used the matching element" | The tool found the same element again by its role and name | Nothing; it worked |
