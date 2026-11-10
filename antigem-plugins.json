@@ -16,6 +16,14 @@
       "version": "1.0.0",
       "description": "Skill for building Android apps on the phone (Kotlin / Compose, Flutter, React Native): set up the tools, create projects, build and install APKs.",
       "icon": "icon.svg"
+    },
+    {
+      "path": "browser_skill",
+      "id": "browser_skill",
+      "name": "Browser Automation",
+      "version": "1.0.0",
+      "description": "Skill for doing tasks in AntiGem's built-in browser with the Browser Automation MCP: lock the tab, find elements by ref, click, type, fill forms, search, read pages, and handle dialogs and errors.",
+      "icon": "icon.svg"
     }
   ]
 }

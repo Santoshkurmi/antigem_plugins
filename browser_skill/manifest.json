@@ -1,0 +1,8 @@
+{
+  "manifest_version": 3,
+  "id": "browser_skill",
+  "name": "Browser Automation",
+  "version": "1.0.0",
+  "description": "Skill for doing tasks in AntiGem's built-in browser with the Browser Automation MCP (browser_* tools): lock the tab while working, find elements by ref, click, type and fill forms, search sites, read pages, and handle dialogs, popups, new tabs and errors quickly and reliably.",
+  "icon": "icon.svg"
+}
