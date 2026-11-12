@@ -51,6 +51,38 @@ latest() { # latest <metadata url> <major prefix> <fallback>
 GOOGLE=https://dl.google.com/dl/android/maven2
 CENTRAL=https://repo1.maven.org/maven2
 
+# .antigem/run.json: the project's commands for AntiGem's Run panel and the IDE's Run button
+json_str() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
+run_cmd() { # run_cmd <name> <command> [cwd, relative to the project]
+    local cwd=""
+    [ -n "${3:-}" ] && cwd=", \"cwd\": \"$(json_str "$3")\""
+    printf '    { "name": "%s", "type": "terminal", "command": "%s"%s }' "$(json_str "$1")" "$(json_str "$2")" "$cwd"
+}
+android_runs() { # android_runs <build> <apk> [cwd] [more run_cmd entries…]  (uses $dir and $pkg)
+    local build="$1" apk="$2" cwd="${3:-}"
+    shift 2; [ $# -gt 0 ] && shift
+    local open="adb shell monkey -p $pkg -c android.intent.category.LAUNCHER 1 >/dev/null"
+    local entries=(
+        "$(run_cmd "Build debug APK" "$build" "$cwd")"
+        "$(run_cmd "Build, install & open" "$build && adb install -r $apk && $open" "$cwd")"
+        "$(run_cmd "Install & open" "adb install -r $apk && $open" "$cwd")"
+        "$(run_cmd "Install with Android's installer" "termux-open $apk" "$cwd")"
+        "$(run_cmd "App log (logcat)" "adb logcat --pid=\$(adb shell pidof -s $pkg)" "$cwd")"
+        "$@"
+    )
+    mkdir -p "$dir/.antigem" || return 0
+    {
+        printf '{\n  "version": "1.0",\n  "configurations": [\n'
+        local i
+        for i in "${!entries[@]}"; do
+            [ "$i" -gt 0 ] && printf ',\n'
+            printf '%s' "${entries[$i]}"
+        done
+        printf '\n  ]\n}\n'
+    } > "$dir/.antigem/run.json"
+    ok "Run commands saved in .antigem/run.json (AntiGem's Run panel and IDE)"
+}
+
 new_compose() {
     local app="${name:-$(printf '%s' "$base" | sed 's/[-_]/ /g')}"
     # Versions this template was built with on a phone (AGP 9.5.1 needs Gradle 9.x; these AndroidX releases
@@ -307,6 +339,7 @@ ${sum:+distributionSha256Sum=$sum
 zipStorePath=wrapper/dists
 EOF
     ok "Compose project '$app' ($pkg) created in $dir"
+    android_runs "adev ./gradlew assembleDebug --console=plain" "app/build/outputs/apk/debug/app-debug.apk"
     echo "Build:  cd $dir && adev ./gradlew assembleDebug"
     echo "APK:    $dir/app/build/outputs/apk/debug/app-debug.apk"
 }
@@ -326,6 +359,9 @@ new_flutter() {
         sed -i "s/^\( *applicationId *= *\)\"$org\.$project\"/\1\"$pkg\"/" "$dir/android/app/build.gradle.kts" 2>/dev/null
     fi
     ok "Flutter project created in $dir"
+    android_runs "adev flutter build apk --debug" "build/app/outputs/flutter-apk/app-debug.apk" "" \
+        "$(run_cmd "Flutter run (hot reload)" "adev flutter run")" \
+        "$(run_cmd "Get packages" "adev flutter pub get")"
     echo "Build:  cd $dir && adev flutter build apk --debug"
     echo "APK:    $dir/build/app/outputs/flutter-apk/app-debug.apk"
 }
@@ -339,6 +375,8 @@ new_rn() {
     adev "npx --yes @react-native-community/cli@latest init '$app' --directory '$dir' --package-name '$pkg' --skip-git-init --install-pods false --pm npm" \
         || die "react-native init failed"
     ok "React Native project '$app' created in $dir"
+    android_runs "adev ./gradlew assembleDebug --console=plain" "app/build/outputs/apk/debug/app-debug.apk" "android" \
+        "$(run_cmd "Start Metro" "adev npx react-native start --port 8081")"
     echo "Build:  cd $dir/android && adev ./gradlew assembleDebug   (needs the ndk step: React Native compiles C++)"
     echo "Debug APKs load JS from Metro: cd $dir && adev npx react-native start"
     echo "APK:    $dir/android/app/build/outputs/apk/debug/app-debug.apk"

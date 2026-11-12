@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "id": "android-dev",
   "name": "Android Development",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Skill for building Android apps on the phone: Kotlin / Java with Jetpack Compose, Flutter and React Native, in a proot-distro Ubuntu container (the same one REA uses). Checks the setup, installs what is missing, creates projects, builds and installs APKs. Also carries the setup scripts.",
   "icon": "icon.svg"
 }

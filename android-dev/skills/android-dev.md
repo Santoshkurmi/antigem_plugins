@@ -108,3 +108,29 @@ first build may need SDK platforms it targets; Gradle downloads them by itself (
   that points at stale or corrupt outputs and does not go away otherwise, the disk is full, or the user asks.
   Then clean the smallest thing that fixes it (one module's `build/`, not Gradle's whole cache), and tell the user
   why.
+
+## 5. Keep the project's run commands in `.antigem/run.json`
+
+The user builds and runs apps without the terminal from AntiGem's **Run panel** (and the IDE's Run button). Both
+read the project's `.antigem/run.json`; `adev-new` writes one for every project it creates. Keep it in step:
+
+- A project without one (cloned, made by hand): create it with the commands below for its kind.
+- You change how the app is built, installed or started (a new flavor, a package name, Metro's port, a script):
+  update the matching commands. Keep the user's own commands; don't reorder or rename them.
+- Write commands as they run on this phone (`adev …` for Gradle, Flutter and npm/npx; `adb` and `termux-open`
+  as they are). Each runs in the project folder, or in `cwd` (relative to the project) when given.
+
+```json
+{
+  "version": "1.0",
+  "configurations": [
+    { "name": "Build debug APK", "type": "terminal", "command": "adev ./gradlew assembleDebug --console=plain" },
+    { "name": "Build, install & open", "type": "terminal", "command": "adev ./gradlew assembleDebug --console=plain && adb install -r app/build/outputs/apk/debug/app-debug.apk && adb shell monkey -p com.example.notes -c android.intent.category.LAUNCHER 1 >/dev/null" },
+    { "name": "Install with Android's installer", "type": "terminal", "command": "termux-open app/build/outputs/apk/debug/app-debug.apk" }
+  ]
+}
+```
+
+React Native: the Gradle commands get `"cwd": "android"` (APK path relative to it), plus a `Start Metro` command
+(`adev npx react-native start --port 8081`) in the project folder. Flutter: `adev flutter build apk --debug`,
+`build/app/outputs/flutter-apk/app-debug.apk`, and `adev flutter run` for hot reload.
