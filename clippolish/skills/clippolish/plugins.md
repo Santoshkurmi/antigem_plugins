@@ -13,9 +13,19 @@ Plugins are safe to share and install. One plugin can hold any mix of:
 | `layouts` | layouts with named slots | Scenes → Layout |
 | `templates` | ready-made scenes / element groups | + Add → Templates, `place_template` |
 | `motions` | element motions | Elements → Motion presets, `apply_motion` |
+| `effects` | shader effects: GLSL defining `vec4 effect(vec2 uv)` + typed `inputs` | Elements → Effects, `add_effect` |
+| `transitions` | shader scene transitions, gl-transitions style `vec4 transition(vec2 uv)` | Scenes → Shader transitions |
+| `behaviors` | reusable animations: `inputs` + `tracks` with formulas | Elements → Ready-made motion, `apply_behavior` |
+| `eases` | named curves `{id, curve: "cubic(…)" / "spring(…)"}` | any key's `ease` |
+| `generators` | sandboxed JavaScript `generate(input, ctx)` returning `{elements, scenes}` | + Add → Generators, `run_generator` |
+| `sounds` | sound files in the zip `{id, name, file}` | Sounds, as `"sfx:<plugin>/<id>"` |
+| `luts` | colour looks: `.cube` 3D LUTs `{id, name, file}` or inline `cube` text | Effects → Colour look, `add_effect effect=lut` |
+| `fonts` | typefaces in the zip `{id, name, file}` | `style.font = "<plugin>/<id>"` |
+| `components` | element groups with fields `{id, name, inputs, box, elements}` | + Add → Components, `add_component` |
 
 Run `describe_model` for each part: `plugin`, `rule`, `live_rule`, `look`, `style_pack`, `studio_layout`,
-`studio_template`, `scene_look`, `motion_preset`. Units are as in `json-editing.md` (µs, normalized boxes,
+`studio_template`, `scene_look`, `motion_preset`, `effect_def`, `transition_def`, `behavior_def`, `generator_def`,
+`component_def`, `lut_def`, `font_def`. Units are as in `json-editing.md` (µs, normalized boxes,
 ARGB numbers).
 
 ## Rules for recordings
@@ -98,3 +108,34 @@ copied into the plugin. To write one by hand:
 - `list_plugins` shows what is installed; `get_plugin` returns one plugin's JSON; `delete_plugin` removes a
   user plugin (built-ins are reset instead). Built-in plugins include Tutorial Pro, Privacy Guard,
   Social Shorts, Bug Report, App Store Preview, Spotlight Walkthrough and the Studio starter kit.
+
+
+## Effects, transitions, behaviours, generators
+
+- **Effects.** An effect's code defines `vec4 effect(vec2 uv)` (uv 0..1, top-left).
+  - Helpers you can call: `src(uv)` (the layer so far, premultiplied), `orig(uv)` (the untouched layer),
+    `hash()` and `noise()`.
+  - Uniforms you get: `uSize` (px), `uUnit` (px per canvas short side), `uTime` and `uPass`.
+  - Each input becomes a uniform with the same name (`float`, `vec4` colour, `vec2` point).
+  - For blur-like effects, write several `passes`.
+  - Set `margin` to leave room for glows.
+- **Transitions.** Use the gl-transitions convention: `getFromColor` / `getToColor`, `progress`, `ratio`. Code
+  from gl-transitions usually works as is.
+- **Behaviours.** Inputs become element params, and tracks use them in formulas (`param.swing` or just
+  `swing`).
+- **Generators.** Write `function generate(input, ctx) { return { elements: [...], scenes: [...] } }`.
+  - Elements use the same JSON as `describe_model("element")`.
+  - Times are µs from where the generator is placed; `endUs: 0` = until the end.
+  - `ctx` has `durationMs`, `aspect`, `width`, `height`, `startMs` and `pack` colours.
+  - Test one before installing: `run_generator js=… dry_run=true`.
+- **Effect inputs of type `lut` / `image`.**
+  - `lut` gives `sampler2D name` + `float nameSize`; use `lutApply(name, nameSize, rgb)`. Its value is a look id.
+  - `image` gives `sampler2D name`; its value is a picture path.
+- **Components.**
+  - Element boxes are 0..1 of the component's box, and times run from its start (`endUs: 0` = to its end).
+  - Inputs of type `text` / `color` become fields: `{name}` in texts, `field.name` in formulas (e.g.
+    `style.fill: {expr: "field.color"}`).
+  - Number inputs become params (`param.name`).
+- **Looks.** A `.cube` with `LUT_3D_SIZE` 2–128. `create_plugin` takes looks inline as `cube` text; files need a zip.
+- **Testing a plugin.** `test_plugin` compiles its shaders on the phone's GPU (`shader_problems`) and checks
+  eases, formulas, components (`component_problems`), looks (`lut_problems`) and fonts (`font_problems`). Fix everything it reports before telling the user the plugin is ready.

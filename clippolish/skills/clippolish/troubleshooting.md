@@ -24,3 +24,5 @@
 | "Exporting via AI is disabled…" / "Deleting is disabled…" | The user turned it off in AI access → Permissions. Tell them; don't work around it |
 | Export takes long | Normal for long or 4K videos. Poll `get_export_status` every 3–5 s; don't start it twice |
 | The app crashed | `get_crash_log` returns the last crash report; include it when you tell the user |
+| A colour comes out wrong (pink instead of blue…) | A string colour was written as `"#AARRGGBB"`. Strings are `"#RRGGBB"`, or `"#RRGGBBAA"` with alpha last |
+| A mask, matte, blend or adjustment layer seems to do nothing | Check with `get_frame` at a moment the element is fully in. Adjustment layers only change elements below them (`z`) inside their box; a matte's `from` element must be on screen |

@@ -7,7 +7,9 @@ through a small generic layer generated from the real data model. Use it when no
 
 - Times: **µs** in fields ending in `Us` and in `t`. 1 s = 1 000 000.
 - Positions and boxes: normalized 0..1, as `{"left", "top", "right", "bottom"}` or `{"x", "y"}`.
-- Colours: ARGB **numbers** in JSON. 0xFFFF7A45 = 4294933061. Compute the number; don't write hex strings.
+- Colours: ARGB **numbers** in model fields. 0xFFFF7A45 = 4294933061. Compute the number; don't write hex strings
+  there. Track keys, effect params and component fields take strings instead: `"#RRGGBB"`, or `"#RRGGBBAA"` with
+  alpha last (never `"#AARRGGBB"`).
 - Field names exactly as `describe_model` shows them. Unknown fields and wrong types are rejected, so typos
   never get silently dropped.
 

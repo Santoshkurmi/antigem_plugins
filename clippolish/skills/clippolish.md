@@ -1,6 +1,6 @@
 ---
 name: ClipPolish videos (screen recordings and studio videos)
-description: Use the ClipPolish MCP server well. Polish screen recordings (zooms on taps, captions, blur, highlights, styles, speed, export), make studio videos from scenes, pictures, videos, text and animation timed to a transcript, bring in pictures / sounds / videos (shared folder, upload key + curl, links — never file contents), show the user a preview that plays in the chat (preview_video) before exporting, and write or install ClipPolish plugins. Check the connection, look before and after every edit, and verify with frames.
+description: Use the ClipPolish MCP server well. Polish screen recordings, animate anything (tracks with any easing or formulas, paths, graphs, LaTeX, 3D, particles, effects, keying, sound effects, beats), composite like a VFX app (masks, track mattes, adjustment layers, blend modes, colour looks, corner pin, motion blur, speed ramps, components with fields, follow moving things) (zooms on taps, captions, blur, highlights, styles, speed, export), make studio videos from scenes, pictures, videos, text and animation timed to a transcript, bring in pictures / sounds / videos (shared folder, upload key + curl, links — never file contents), show the user a preview that plays in the chat (preview_video) before exporting, and write or install ClipPolish plugins. Check the connection, look before and after every edit, and verify with frames.
 ---
 
 # ClipPolish videos
@@ -19,7 +19,9 @@ Detail files (read with `get_skill_file`, name `clippolish`):
 | `studio.md` | Making a studio video: look, scenes, elements, transcript and word cues, templates, motions, checking, export |
 | `files-and-preview.md` | Bringing pictures, sounds or videos into a project (shared folder, `upload_file` + curl, links), and showing the user the video in the chat with `preview_video` before exporting |
 | `json-editing.md` | Anything the task tools don't cover: `describe_model`, `get_project_json`, `patch_project`, `upsert_items`, `batch`, units |
-| `plugins.md` | Writing, testing and installing ClipPolish plugins (rules, live rules, looks, style packs, layouts, templates, motions), plugin websites |
+| `create-easily.md` | **Start here for anything visual**: copy-paste recipes. Animated titles, components (title card, progress ring, subscribe button), green screen and cut-outs, video inside text, film colour grade, spotlight, masks and rotoscoping, corner pin, speed ramp / freeze / reverse, labels that follow moving things, particles, sounds, graphs and equations, making your own components and looks |
+| `motion-vfx.md` | Custom motion (any property, any easing, formulas), curves / graphs / equations, groups and copies, 3D, letter animation, effects, masks / track mattes / adjustment layers / blend modes, corner pin, motion blur, video speed ramps, colour looks, components, following moving things, green screen and background removal, particles, sound effects, beats, SVG / Lottie, script generators |
+| `plugins.md` | Writing, testing and installing ClipPolish plugins (rules, live rules, looks, style packs, layouts, templates, motions, effects, transitions, behaviours, eases, generators, sounds), plugin websites |
 | `troubleshooting.md` | A tool returned an error or the result looks wrong |
 
 ## 0. Check the connection
@@ -77,7 +79,9 @@ Never print or repeat the key in chat.
 | Use the user's pictures, music, voice-over or clips | `files-and-preview.md` §1 → `import_asset paths=[…]` (shared folder or links) or `upload_file` + curl |
 | Show the user the video | `preview_video` → post its `markdown` line (`files-and-preview.md` §2) |
 | A 2D Video Editing Studio project (EDIT.json, WORDS.tsv, VO.wav) | `import_studio_project` (folder, .zip, or the JSON text), then check it like a studio video |
-| Something reusable ("always do X to my recordings", a look, templates) | `plugins.md` |
+| "Make it look cool", or any common effect you're not sure how to build | `create-easily.md`: pick the recipe, copy the calls, then `get_frame` / `preview_video` |
+| Curves, orbits, graphs, equations, 3D, particles, glow / blur, masks, mattes, adjustment layers, LUT looks, corner pin, speed ramps, components, green screen, cut-outs, sound effects, beat sync | `motion-vfx.md`. `set_track` (keys + easing or a formula) instead of many keyframes; check with `sample_tracks` |
+| Something reusable ("always do X to my recordings", a look, templates, an effect) | `plugins.md` |
 | Anything the task tools can't express | `json-editing.md`. The generic tools reach **every** field the app has |
 
 ## 3. Seeing
