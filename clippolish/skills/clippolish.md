@@ -1,6 +1,6 @@
 ---
 name: ClipPolish videos (screen recordings and studio videos)
-description: Use the ClipPolish MCP server well. Polish screen recordings (zooms on taps, captions, blur, highlights, styles, speed, export), make studio videos from scenes, pictures, videos, text and animation timed to a transcript, and write or install ClipPolish plugins. Check the connection, look before and after every edit, and verify with frames.
+description: Use the ClipPolish MCP server well. Polish screen recordings (zooms on taps, captions, blur, highlights, styles, speed, export), make studio videos from scenes, pictures, videos, text and animation timed to a transcript, bring in pictures / sounds / videos (shared folder, upload key + curl, links — never file contents), show the user a preview that plays in the chat (preview_video) before exporting, and write or install ClipPolish plugins. Check the connection, look before and after every edit, and verify with frames.
 ---
 
 # ClipPolish videos
@@ -17,6 +17,7 @@ Detail files (read with `get_skill_file`, name `clippolish`):
 | --- | --- |
 | `recordings.md` | Polishing a screen recording: what happened in it, zooms, captions, privacy, styles, speed, review, export |
 | `studio.md` | Making a studio video: look, scenes, elements, transcript and word cues, templates, motions, checking, export |
+| `files-and-preview.md` | Bringing pictures, sounds or videos into a project (shared folder, `upload_file` + curl, links), and showing the user the video in the chat with `preview_video` before exporting |
 | `json-editing.md` | Anything the task tools don't cover: `describe_model`, `get_project_json`, `patch_project`, `upsert_items`, `batch`, units |
 | `plugins.md` | Writing, testing and installing ClipPolish plugins (rules, live rules, looks, style packs, layouts, templates, motions), plugin websites |
 | `troubleshooting.md` | A tool returned an error or the result looks wrong |
@@ -30,7 +31,7 @@ returns the map of tools.
 If the tools are missing or every call fails to connect, stop and tell the user how to connect:
 
 1. ClipPolish → home → **Let your AI edit your videos → Connect** (or Settings → AI access).
-2. Switch **MCP server** on. With the AI on the same phone, choose **This phone only**.
+2. Switch **MCP server** on. It listens on this phone only (`127.0.0.1`); a Wi-Fi option exists only in debug builds.
 3. AntiGem often holds port 8765 already. If the server does not start, or another app answers on 8765, set the
    **Port** to 8766.
 4. Copy the URL (`http://127.0.0.1:<port>/mcp`) and the key from that screen. In AntiGem → Settings → the
@@ -62,6 +63,10 @@ Never print or repeat the key in chat.
    `delete_project` and `export` can also be turned off in the app; if a call says so, tell the user.
 7. **Nothing runs on its own in ClipPolish.** Suggestions from `get_review` are only applied when you or the
    user choose one (`apply_review`).
+8. **Never put file contents in a tool call** (no base64). Bring files in through the shared folder, an upload
+   key + `curl`, or an `https://` link: `files-and-preview.md`.
+9. **Let the user watch before exporting.** After a visible change, call `preview_video` and post its
+   `markdown` line. It plays in the chat within seconds, with sound, and keeps that version in the chat history.
 
 ## 2. Pick the workflow
 
@@ -69,6 +74,8 @@ Never print or repeat the key in chat.
 | --- | --- |
 | "Polish / edit my recording", tutorials, bug reports, app demos | `recordings.md`. Quick path: `auto_edit` → look → fix with task tools → `get_storyboard` |
 | A video that is **not** a recording: explainer, story, quote, data, promo, "make a video about…" | `studio.md`. `studio_catalog` → `create_video_project` → `set_transcript` (if there is speech) → `place_template` / `add_scene` / `add_element` → check frames |
+| Use the user's pictures, music, voice-over or clips | `files-and-preview.md` §1 → `import_asset paths=[…]` (shared folder or links) or `upload_file` + curl |
+| Show the user the video | `preview_video` → post its `markdown` line (`files-and-preview.md` §2) |
 | A 2D Video Editing Studio project (EDIT.json, WORDS.tsv, VO.wav) | `import_studio_project` (folder, .zip, or the JSON text), then check it like a studio video |
 | Something reusable ("always do X to my recordings", a look, templates) | `plugins.md` |
 | Anything the task tools can't express | `json-editing.md`. The generic tools reach **every** field the app has |
@@ -83,6 +90,7 @@ Never print or repeat the key in chat.
 | What the user tapped, typed, scrolled (recordings with Smart mode) | `get_timeline`, then `get_screen_at` / `find_ui_element` for labels and rects |
 | The full edit state | `get_project` (readable) or `get_project_json` with `paths` (exact JSON) |
 | A studio video's scenes and elements, and cues that don't match the spoken words | `get_studio` |
+| The **user** watching the whole video, with sound, before export | `preview_video` (`480p` / `720p`); post its `markdown` line |
 
 Frames cost tokens. Check the moments you changed rather than every second, and use a storyboard for the
 overview.
@@ -91,8 +99,8 @@ overview.
 
 1. Use `get_storyboard` and look at it critically: overlapping text, text too small, wrong timing, empty
    frames, private data visible.
-2. Tell the user what you did, in plain words, with times. Tell them that everything can be undone in the
-   editor (`undo` also works).
+2. Tell the user what you did, in plain words, with times, and post the `preview_video` markdown so they can
+   watch it in the chat. Tell them that everything can be undone in the editor (`undo` also works).
 3. Export only when asked: `export` (`kind` mp4 / gif / guide_pdf / guide_md / html_demo / srt / vtt /
    chapters / frame_png). Poll `get_export_status` every few seconds, then `get_export_result` for where it was
    saved.

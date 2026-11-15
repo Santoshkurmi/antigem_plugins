@@ -24,7 +24,7 @@ A **style pack** gives the whole video its colours, fonts, frames and film finis
    | Pack | Fits |
    | --- | --- |
    | `clean` | anything |
-   | `noir` | true crime, mystery, history (letterbox, grain) |
+   | `noir` | true crime, mystery, history (grain, cold grade) |
    | `documentary` | paper, cut-out photos |
    | `sticker` | fun, kids, lists |
    | `box` | data, business |
@@ -42,11 +42,14 @@ A **style pack** gives the whole video its colours, fonts, frames and film finis
 It starts with one scene covering everything. Change the length any time with `set_canvas_length`; with a
 voice-over, make it the voice's length plus about 0.6 s.
 
-Bring in files first:
-- `import_asset path=/sdcard/…` copies pictures, videos and sounds into the project and returns the path to use
-  as `src`. Absolute paths given to `add_element` / `add_scene` are copied too.
+Bring in files first (details and rules in `files-and-preview.md` §1; never file contents in a tool call):
+- Shared folder: copy the files there, then `import_asset paths=[…]` (many at once). It returns the paths to use
+  as `src`. `https://` links work the same way, and the phone downloads them.
+- Or `upload_file project_id=…` → run its `curl` command with all your files. The reply's paths
+  (`assets/…`) go straight into `src` / `path`.
+- Paths given to `add_element` / `add_scene` / `upsert_items` are copied into the project too.
 - A voice-over or music track is an audio clip: `upsert_items kind=audio_clip` with `path` (from
-  `import_asset`), `title`, `atUs`, `durationUs`, and `kind` `VOICEOVER`, `MUSIC` or `SFX`. Background music for the whole video: `set_audio music_path`.
+  `import_asset` or the upload), `title`, `atUs`, `durationUs`, and `kind` `VOICEOVER`, `MUSIC` or `SFX`. Background music for the whole video: `set_audio music_path`.
 
 ## 3. Transcript and word cues (only when there is speech)
 
@@ -129,7 +132,7 @@ entrance, exactly like the editor's Add button. Give only what matters:
 
 **Look**: `set_studio_look pack=… apply_to_scenes=true` restyles every scene's background, transition and
 camera move (pictures and videos stay). `set` overrides colours, fonts, `grain`, `vignette`, `contrast`,
-`saturation`, `warmth`, `letterbox` and `highlightWords`.
+`saturation`, `warmth`, `letterbox` and `highlightWords`. Cinema bars (`letterbox`) are off by default: add them only when the user asks.
 
 ## 5. Good videos
 
@@ -152,7 +155,10 @@ camera move (pictures and videos stay). `set` overrides colours, fonts, `grain`,
    empty frames, and captions covering elements. Fix with `upsert_items` / `patch_project`.
 3. `get_storyboard count=8–12` for the whole flow.
 4. Want to reuse a scene? `save_template scene_id=… name=…` puts it in the user's "My templates".
-5. Export only when asked: `export kind=mp4` (see `recordings.md` §6).
+5. Show it to the user: `preview_video` (`480p`, or `720p` for short videos and small text) and post its
+   `markdown` line. It plays in the chat within seconds (no export needed). Make a new preview after each round
+   of changes.
+6. Export only when asked: `export kind=mp4` (see `recordings.md` §6).
 
 ## 7. 2D Video Editing Studio projects
 

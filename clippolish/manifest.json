@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "id": "clippolish",
   "name": "ClipPolish",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Skill for the ClipPolish MCP server: polish screen recordings (zooms, captions, blur, styles, export) and make studio videos from scenes, pictures, text and animation, timed to a transcript; write and install ClipPolish plugins.",
   "icon": "icon.svg"
 }
