@@ -24,6 +24,14 @@
       "version": "1.0.0",
       "description": "Skill for doing tasks in AntiGem's built-in browser with the Browser Automation MCP: lock the tab, find elements by ref, click, type, fill forms, search, read pages, and handle dialogs and errors.",
       "icon": "icon.svg"
+    },
+    {
+      "path": "clippolish",
+      "id": "clippolish",
+      "name": "ClipPolish",
+      "version": "1.0.0",
+      "description": "Skill for the ClipPolish MCP server: polish screen recordings (zooms, captions, blur, styles, export) and make studio videos from scenes, pictures, text and animation timed to a transcript; write and install ClipPolish plugins.",
+      "icon": "icon.svg"
     }
   ]
 }

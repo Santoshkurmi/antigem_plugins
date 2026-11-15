@@ -9,6 +9,7 @@ there if you removed it). Install a plugin from the list; updates show up there 
 | [`rea`](rea/) | Skills-only plugin for **REA** (Reverse Engineer Anything): teaches agents to set up REA, check its MCP server and analyze APKs, installed apps, Flutter, React Native and native code. Also holds REA's setup scripts. |
 | [`android-dev`](android-dev/) | Skills-only plugin for **building Android apps on the phone**: Kotlin / Java with Jetpack Compose, Flutter and React Native, in the same proot-distro Ubuntu container as REA. Teaches agents to check and install the tools, create projects, build and install APKs. Also holds the setup scripts. |
 | [`browser_skill`](browser_skill/) | Skills-only plugin for **AntiGem's built-in browser**: teaches agents to use the Browser Automation MCP (`browser_*` tools) well: lock the tab while working, find elements by ref, click / type / fill forms, search sites, read pages, handle dialogs, popups, new tabs and errors. |
+| [`clippolish`](clippolish/) | Skills-only plugin for **ClipPolish** (screen recorder + video editor app): teaches agents to connect to its MCP server and use it well: polish screen recordings (zooms, captions, privacy blur, styles, export), make studio videos from scenes, pictures, text and animation timed to a transcript, and write or install ClipPolish plugins. |
 
 ## REA
 
@@ -94,3 +95,23 @@ browser_skill/
 No scripts: the tools are built into the app (MCP endpoint `/browser`, preset "Browser Automation"). When the tools
 change (new tools, renamed parameters, different messages), update the skill to match, then raise the version in
 `manifest.json` and `antigem-plugins.json`.
+
+## ClipPolish
+
+```
+clippolish/
+  manifest.json
+  icon.svg
+  skills/
+    clippolish.md           ← main skill: connect, golden rules (look → edit → check), pick the workflow, seeing, finishing
+    clippolish/             ← detail files the main skill points to
+      recordings.md         ← polishing screen recordings: timeline, auto_edit, task tools, privacy review, recording, export
+      studio.md             ← studio videos: packs, transcript + word cues, templates, scenes, elements, motions, checking
+      json-editing.md       ← describe_model, get_project_json, patch_project (@id paths), upsert_items, batch, units
+      plugins.md            ← ClipPolish plugins: rules, live rules, looks, style packs, layouts, templates, motions, websites
+      troubleshooting.md    ← each error and what to do
+```
+
+No scripts: the tools are served by the ClipPolish app (AI access → MCP server, `http://127.0.0.1:<port>/mcp` with
+`Authorization: Bearer <key>`). When ClipPolish's MCP tools change (new tools, renamed parameters, new studio
+features), update the skill to match, then raise the version in `manifest.json` and `antigem-plugins.json`.
