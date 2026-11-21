@@ -10,16 +10,55 @@
 # Source: antigem_plugins/android-dev/skills/android-dev/scripts/ (AntiGem downloads it into $PREFIX/share/antigem-android/).
 set -uo pipefail
 
-P=/data/data/com.termux/files/usr
-H=/data/data/com.termux/files/home
-export PREFIX="$P" PATH="$P/bin:$PATH" TMPDIR="${TMPDIR:-$P/tmp}" DEBIAN_FRONTEND=noninteractive
+say() { printf '==> %s\n' "$*"; }
+ok() { printf '✓ %s\n' "$*"; }
+die() { printf '✗ %s\n' "$*" >&2; exit 1; }
+
+# Where the tools run. In AntiGem's terminal (Termux): a proot-distro Ubuntu container. In AntiGem's Ubuntu chroot
+# (rooted phones): that Ubuntu itself, no container. There AntiGem runs this script inside the chroot as root with
+# ANTIGEM_RUNTIME=chroot and ANTIGEM_USER=<the chroot's user>: the tools go to /opt/antigem, the commands to
+# /usr/local/bin, Gradle's settings and the projects to the user's home, and the SDK and Flutter belong to the user
+# (Gradle and Flutter write into them while building). Ubuntu's own arm64 aapt2, adb, fastboot and qemu-user replace
+# Termux's builds.
+RUNTIME="${ANTIGEM_RUNTIME:-termux}"
 C="${ADEV_CONTAINER:-ubuntu}"
 IMAGE="${ADEV_IMAGE:-ubuntu:24.04}"
-ROOTFS="$P/var/lib/proot-distro/containers/$C/rootfs"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SHARE="$P/share/antigem-android"
-FILES="files.json android-setup.sh adev adev-new"
-SDK=/root/android-sdk
+FILES="files.json android-setup.sh adev adev-new adev-chroot"
+if [ "$RUNTIME" = chroot ]; then
+    [ "$(id -u)" = 0 ] || die "In the Ubuntu chroot this script runs as root: sudo env ANTIGEM_RUNTIME=chroot bash $0 ${*:-help}"
+    U="${ANTIGEM_USER:-${SUDO_USER:-}}"
+    UH=""
+    [ -n "$U" ] && UH=$(getent passwd "$U" | cut -d: -f6)
+    [ -n "$UH" ] || { U=""; UH=/root; }
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin DEBIAN_FRONTEND=noninteractive
+    ROOTFS=""
+    T=/opt/antigem/tools
+    NVM_HOME=/opt/antigem/nvm
+    SHARE=/opt/antigem/share/antigem-android
+    BIN=/usr/local/bin
+    SDK=/opt/antigem/android-sdk
+    GH="$UH/.gradle"
+    PROJECTS="$UH/AndroidProjects"
+    AAPT2=/usr/bin/aapt2
+    QEMU=/usr/bin/qemu-x86_64
+    ADB=/usr/bin/adb
+else
+    P=/data/data/com.termux/files/usr
+    H=/data/data/com.termux/files/home
+    export PREFIX="$P" PATH="$P/bin:$PATH" TMPDIR="${TMPDIR:-$P/tmp}" DEBIAN_FRONTEND=noninteractive
+    ROOTFS="$P/var/lib/proot-distro/containers/$C/rootfs"
+    T=/root/tools
+    NVM_HOME=/root/.nvm
+    SHARE="$P/share/antigem-android"
+    BIN="$P/bin"
+    SDK=/root/android-sdk
+    GH=/root/.gradle
+    PROJECTS="$H/AndroidProjects"
+    AAPT2="$P/bin/aapt2"
+    QEMU="$P/bin/qemu-x86_64"
+    ADB="$P/bin/adb"
+fi
 NODE_MAJOR=24
 NVM_VERSION=v0.40.3
 # android-37.0: the Compose template (current AndroidX needs compileSdk 37); android-36: Flutter's and React Native's
@@ -33,25 +72,45 @@ STRIP_NDK_VERSION=28.2.13676358
 NDK_VERSION="${ADEV_NDK_VERSION:-28.2.13676358}"
 SDK_CMAKE=3.22.1
 KEEP="-o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold"
-JAVA_HOME_IN=/usr/lib/jvm/java-21-openjdk-arm64
-AAPT2="$P/bin/aapt2"
-IN_PATH=/root/tools/adev-bin:/root/tools/flutter/bin:/root/tools/node/bin:$SDK/cmdline-tools/latest/bin:$SDK/platform-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-say() { printf '==> %s\n' "$*"; }
-ok() { printf '✓ %s\n' "$*"; }
-die() { printf '✗ %s\n' "$*" >&2; exit 1; }
+# Ubuntu's name for this CPU, in its JDK folder (java-21-openjdk-arm64 / -amd64)
+case "$(uname -m)" in x86_64) DEB_ARCH=amd64 ;; *) DEB_ARCH=arm64 ;; esac
+JAVA_HOME_IN=/usr/lib/jvm/java-21-openjdk-$DEB_ARCH
+IN_PATH=$T/adev-bin:$T/flutter/bin:$T/node/bin:$SDK/cmdline-tools/latest/bin:$SDK/platform-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 has_container() { [ -x "$ROOTFS/usr/bin/apt-get" ]; }
 need_container() { has_container || die "The '$C' Ubuntu container is not installed yet. Run the 'container' step first."; }
-# Runs a bash script inside the container, with a clean environment (no Termux PATH)
+# Runs a bash script inside the container (in the chroot: right here, as root), with a clean environment (no Termux PATH)
 inside() {
+    if [ "$RUNTIME" = chroot ]; then
+        /usr/bin/env -i HOME=/root TERM=dumb LANG=C.UTF-8 DEBIAN_FRONTEND=noninteractive "PATH=$IN_PATH" "JAVA_HOME=$JAVA_HOME_IN" \
+            "ANDROID_HOME=$SDK" "ANDROID_SDK_ROOT=$SDK" "GRADLE_USER_HOME=$GH" /bin/bash -c "$1"
+        return
+    fi
     proot-distro login "$C" --shared-tmp -b "$H:/data/user/0/com.termux/files/home" -- /usr/bin/env -i HOME=/root TERM=dumb LANG=C.UTF-8 \
         DEBIAN_FRONTEND=noninteractive "PATH=$IN_PATH" "JAVA_HOME=$JAVA_HOME_IN" "ANDROID_HOME=$SDK" "ANDROID_SDK_ROOT=$SDK" \
         /bin/bash -c "$1"
 }
 
+# In the chroot: runs a command as the chroot's user (their HOME, files they own). In Termux: as is.
+as_user() {
+    if [ "$RUNTIME" = chroot ] && [ -n "$U" ]; then
+        runuser -u "$U" -- /usr/bin/env HOME="$UH" LANG=C.UTF-8 "PATH=$PATH" "$@"
+    else
+        "$@"
+    fi
+}
+
+# In the chroot: gives these folders (whole trees) to the user, so their builds can write in them. In Termux: nothing.
+give_user() {
+    [ "$RUNTIME" = chroot ] && [ -n "$U" ] || return 0
+    local d
+    for d in "$@"; do [ -e "$d" ] && chown -R "$U:$(id -gn "$U")" "$d"; done
+    return 0
+}
+
 TERMUX_UPDATED=""
 termux_install() {
+    [ "$RUNTIME" = chroot ] && die "Termux packages ($*) are not used in the Ubuntu chroot"
     dpkg --configure -a >/dev/null 2>&1   # finishes an install that was stopped half way
     if [ -z "$TERMUX_UPDATED" ]; then apt-get update -q || die "apt-get update failed in Termux (check the network, or run: pkg upgrade)"; TERMUX_UPDATED=1; fi
     # shellcheck disable=SC2086
@@ -74,6 +133,10 @@ need_in() { # need_in <path inside the container> <step that provides it>
 # ---------------- steps ----------------
 
 step_container() {
+    if [ "$RUNTIME" = chroot ]; then
+        ok "The Android tools install straight into AntiGem's Ubuntu chroot: $(grep -m1 '^PRETTY_NAME=' /etc/os-release 2>/dev/null | cut -d'"' -f2)"
+        return 0
+    fi
     command -v proot-distro >/dev/null 2>&1 || termux_install proot-distro
     if has_container; then
         ok "Container '$C' is installed: $(grep -m1 '^PRETTY_NAME=' "$ROOTFS/etc/os-release" 2>/dev/null | cut -d'"' -f2)"
@@ -105,9 +168,15 @@ step_java() {
 step_sdk() {
     need_in /usr/bin/curl base
     need_in "$JAVA_HOME_IN/bin/java" java
-    # Google's aapt2 (in Gradle's maven) is x86_64 only; Termux builds it for arm64 and it runs in the container
-    [ -x "$AAPT2" ] || termux_install aapt2
-    "$AAPT2" version >/dev/null 2>&1 || die "Termux's aapt2 does not run: try 'pkg upgrade' in the terminal"
+    # Google's aapt2 (in Gradle's maven) is x86_64 only. Termux builds it for arm64 and it runs in the container; in
+    # the chroot Ubuntu's own arm64 build (package aapt) is used.
+    if [ "$RUNTIME" = chroot ]; then
+        [ -x "$AAPT2" ] || ubuntu_install aapt
+        "$AAPT2" version >/dev/null 2>&1 || die "Ubuntu's aapt2 ($AAPT2) does not run"
+    else
+        [ -x "$AAPT2" ] || termux_install aapt2
+        "$AAPT2" version >/dev/null 2>&1 || die "Termux's aapt2 does not run: try 'pkg upgrade' in the terminal"
+    fi
     say "Installing the Android SDK: command-line tools, $SDK_PLATFORMS, build-tools $SDK_BUILD_TOOLS…"
     inside "
 set -e
@@ -133,10 +202,13 @@ for pl in $SDK_PLATFORMS; do [ -d $SDK/platforms/\$pl ] || { echo \"platform \$p
 for bt in $SDK/build-tools/*/; do ln -sf $AAPT2 \"\$bt/aapt2\"; done
 # platform-tools: Termux's adb (Google's is x86_64); Flutter and React Native look for it here
 mkdir -p $SDK/platform-tools
-if [ -e $P/bin/adb ]; then ln -sf $P/bin/adb $SDK/platform-tools/adb; else rm -f $SDK/platform-tools/adb; fi
+if [ -e $ADB ]; then ln -sf $ADB $SDK/platform-tools/adb; else rm -f $SDK/platform-tools/adb; fi
+if [ '$RUNTIME' = chroot ]; then
+    if [ -e /usr/bin/fastboot ]; then ln -sf /usr/bin/fastboot $SDK/platform-tools/fastboot; else rm -f $SDK/platform-tools/fastboot; fi
+fi
 # Gradle settings for every project in the container
-mkdir -p /root/.gradle
-f=/root/.gradle/gradle.properties
+mkdir -p $GH
+f=$GH/gradle.properties
 touch \$f
 setp() { grep -v \"^\$1=\" \$f > \$f.new || true; echo \"\$1=\$2\" >> \$f.new; mv \$f.new \$f; }
 setp android.aapt2FromMavenOverride $AAPT2
@@ -164,8 +236,8 @@ printf '{\"min\": 21, \"max\": 36, \"aliases\": {}}\n' > \$N/meta/platforms.json
 for t in strip objcopy readelf objdump nm; do ln -sf /usr/bin/\$t \$N/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-\$t; done
 mkdir -p \$N/build/cmake
 printf 'message(FATAL_ERROR \"This project compiles C/C++ code. Install the NDK first: AntiGem Settings > Android Development > C/C++ (NDK), or: bash \$PREFIX/share/antigem-android/android-setup.sh ndk\")\n' > \$N/build/cmake/android.toolchain.cmake
-mkdir -p /root/.gradle/init.d
-cat > /root/.gradle/init.d/antigem-arm64.gradle <<'INIT'
+mkdir -p $GH/init.d
+cat > $GH/init.d/antigem-arm64.gradle <<'INIT'
 // AntiGem (android-setup.sh sdk): apps built on the phone are for the phone, so only arm64-v8a native code is
 // packaged. Google's NDK has no arm64 Linux build: every module uses the NDK the ndk step rebuilt on Ubuntu's arm64
 // LLVM ($SDK/ndk-arm64.txt), or without it a strip-only NDK ($SDK/ndk-strip: llvm-strip / llvm-objcopy are the
@@ -174,7 +246,7 @@ cat > /root/.gradle/init.d/antigem-arm64.gradle <<'INIT'
 if (System.getenv('ADEV_ALL_ABIS') != '1') {
     def stripNdk = new File('$SDK/ndk-strip')
     def armNdk = new File('$SDK/ndk-arm64.txt')
-    def qemu = new File('$P/bin/qemu-x86_64')
+    def qemu = new File('$QEMU')
     allprojects {
         // React Native's Hermes compiler (release builds) is a static x86-64 program: run it through Termux's qemu
         pluginManager.withPlugin('com.facebook.react') {
@@ -219,11 +291,17 @@ INIT
 cat > /etc/profile.d/antigem-android.sh <<'PROFILE'
 export JAVA_HOME=$JAVA_HOME_IN
 export ANDROID_HOME=$SDK ANDROID_SDK_ROOT=$SDK
-export PATH=/root/tools/adev-bin:/root/tools/flutter/bin:/root/tools/node/bin:$SDK/cmdline-tools/latest/bin:$SDK/platform-tools:\$PATH
+export PATH=$T/adev-bin:$T/flutter/bin:$T/node/bin:$SDK/cmdline-tools/latest/bin:$SDK/platform-tools:\$PATH
 PROFILE
 ls $SDK/platforms $SDK/build-tools
 " || die "Android SDK install failed"
-    ok "Android SDK installed in $SDK (aapt2: Termux's arm64 build)"
+    # the user's builds write into the SDK (missing platforms, licenses) and their ~/.gradle
+    give_user "$SDK" "$GH"
+    if [ "$RUNTIME" = chroot ]; then
+        ok "Android SDK installed in $SDK (aapt2: Ubuntu's arm64 build)"
+    else
+        ok "Android SDK installed in $SDK (aapt2: Termux's arm64 build)"
+    fi
 }
 
 # The NDK for C/C++ code (React Native's new architecture, Flutter / Kotlin apps with CMake). Google builds the NDK's
@@ -302,6 +380,7 @@ echo $NDK_VERSION > $SDK/ndk-arm64.txt
 echo \"NDK \$(basename \$N) → \$(\$T/bin/clang --version | head -1); cmake \$(cmake --version | head -1 | cut -d' ' -f3)\"
 du -sh \$N
 " || die "Could not set up the NDK with arm64 tools"
+    give_user "$SDK"
     ok "NDK $NDK_VERSION works on arm64 (Ubuntu LLVM $major). Gradle uses it for every C/C++ build."
 }
 
@@ -311,15 +390,15 @@ step_flutter() {
     say "Installing Flutter (stable channel) in Ubuntu: about 1.5 GB with the Android engine files…"
     inside "
 set -e
-mkdir -p /root/tools
-if [ ! -x /root/tools/flutter/bin/flutter ]; then
-    rm -rf /root/tools/flutter.part
-    git clone --depth 1 --branch stable https://github.com/flutter/flutter.git /root/tools/flutter.part
-    mv /root/tools/flutter.part /root/tools/flutter
+mkdir -p $T
+git config --global --get-all safe.directory 2>/dev/null | grep -qx $T/flutter || git config --global --add safe.directory $T/flutter
+if [ ! -x $T/flutter/bin/flutter ]; then
+    rm -rf $T/flutter.part
+    git clone --depth 1 --branch stable https://github.com/flutter/flutter.git $T/flutter.part
+    mv $T/flutter.part $T/flutter
 else
-    cd /root/tools/flutter && git fetch --depth 1 origin stable && git reset --hard FETCH_HEAD
+    cd $T/flutter && git fetch --depth 1 origin stable && git reset --hard FETCH_HEAD
 fi
-git config --global --add safe.directory /root/tools/flutter
 export FLUTTER_SUPPRESS_ANALYTICS=true
 flutter --disable-analytics >/dev/null 2>&1 || true
 dart --disable-analytics >/dev/null 2>&1 || true
@@ -330,8 +409,14 @@ flutter --version
 " || die "Flutter install failed"
     write_flutter_wrapper
     # an update or precache brings fresh x86-64 gen_snapshot files: wrap them again
-    [ -x "$P/bin/qemu-x86_64" ] && [ -d "$ROOTFS/usr/x86_64-linux-gnu" ] && wrap_gen_snapshot
-    ok "Flutter installed in /root/tools/flutter"
+    [ -x "$QEMU" ] && [ -d "$ROOTFS/usr/x86_64-linux-gnu" ] && wrap_gen_snapshot
+    if [ "$RUNTIME" = chroot ]; then
+        # Flutter writes into its own folder (caches, engine files) when the user builds; their own Flutter settings
+        give_user "$T/flutter" "$SDK"
+        as_user /usr/bin/env "PATH=$IN_PATH" FLUTTER_SUPPRESS_ANALYTICS=true /bin/sh -c 'flutter --disable-analytics >/dev/null 2>&1;
+            dart --disable-analytics >/dev/null 2>&1; flutter config --no-analytics --android-sdk "$1" --no-enable-web --no-enable-linux-desktop >/dev/null 2>&1; true' _ "$SDK"
+    fi
+    ok "Flutter installed in $T/flutter"
 }
 
 # Flutter's release / profile compiler (gen_snapshot) exists only as an x86-64 Linux program (engine/<target>/linux-x64),
@@ -340,41 +425,48 @@ flutter --version
 # Ubuntu's x86-64 C library (libc6-amd64-cross). Flutter's files stay as they are.
 wrap_gen_snapshot() {
     inside "
-for x in /root/tools/flutter/bin/cache/artifacts/engine/*/linux-x64/gen_snapshot; do
+for x in $T/flutter/bin/cache/artifacts/engine/*/linux-x64/gen_snapshot; do
     [ -f \"\$x\" ] || continue
     # an older setup renamed the binary: put it back
     if [ -f \"\$x.x86_64\" ]; then mv -f \"\$x.x86_64\" \"\$x\"; fi
     d=\"\$(dirname \"\$(dirname \"\$x\")\")/linux-arm64\"
     [ -e \"\$d/gen_snapshot\" ] && ! grep -q AntiGem \"\$d/gen_snapshot\" 2>/dev/null && continue   # a real arm64 build: keep it
     mkdir -p \"\$d\"
-    printf '#!/bin/sh\\n# AntiGem (android-setup.sh flutter-release): the x86-64 gen_snapshot through qemu\\nexec $P/bin/qemu-x86_64 -L /usr/x86_64-linux-gnu %s \"\$@\"\\n' \"\$x\" > \"\$d/gen_snapshot\"
+    printf '#!/bin/sh\\n# AntiGem (android-setup.sh flutter-release): the x86-64 gen_snapshot through qemu\\nexec $QEMU -L /usr/x86_64-linux-gnu %s \"\$@\"\\n' \"\$x\" > \"\$d/gen_snapshot\"
     chmod 755 \"\$d/gen_snapshot\"
-    echo \"wrapped \${d#/root/tools/flutter/bin/cache/artifacts/engine/}/gen_snapshot\"
+    echo \"wrapped \${d#$T/flutter/bin/cache/artifacts/engine/}/gen_snapshot\"
 done
 "
 }
 
 step_flutter_release() {
-    need_in /root/tools/flutter/bin/cache/dart-sdk/bin/dart flutter
-    say "Installing qemu (Termux) and the x86-64 C library (Ubuntu), for Flutter release and profile builds…"
-    termux_install qemu-user-x86-64
-    ubuntu_install libc6-amd64-cross
+    need_in $T/flutter/bin/cache/dart-sdk/bin/dart flutter
+    if [ "$RUNTIME" = chroot ]; then
+        # no proot here, so Ubuntu's own qemu-user runs it (it crashes only under proot)
+        say "Installing qemu-user and the x86-64 C library (Ubuntu), for Flutter release and profile builds…"
+        ubuntu_install qemu-user libc6-amd64-cross
+    else
+        say "Installing qemu (Termux) and the x86-64 C library (Ubuntu), for Flutter release and profile builds…"
+        termux_install qemu-user-x86-64
+        ubuntu_install libc6-amd64-cross
+    fi
     wrap_gen_snapshot
-    inside "/root/tools/flutter/bin/cache/artifacts/engine/android-arm64-release/linux-arm64/gen_snapshot --version 2>&1 | head -1" \
+    give_user "$T/flutter"
+    inside "$T/flutter/bin/cache/artifacts/engine/android-arm64-release/linux-arm64/gen_snapshot --version 2>&1 | head -1" \
         || die "gen_snapshot does not run under qemu"
     ok "Flutter release builds work (gen_snapshot runs through qemu: a few minutes per build)"
 }
 
-# /root/tools/adev-bin/flutter: Flutter for this phone. 'flutter build apk|appbundle|aar' builds arm64 only
+# $T/adev-bin/flutter: Flutter for this phone. 'flutter build apk|appbundle|aar' builds arm64 only
 # (Flutter's default is arm, arm64 and x64: three Dart compiles); ADEV_ALL_ABIS=1 or an explicit
 # --target-platform keeps Flutter's own choice.
 write_flutter_wrapper() {
     inside "
-mkdir -p /root/tools/adev-bin
-cat > /root/tools/adev-bin/flutter <<'WRAP'
+mkdir -p $T/adev-bin
+cat > $T/adev-bin/flutter <<'WRAP'
 #!/bin/bash
 # AntiGem (android-setup.sh flutter): Android builds on the phone are arm64-v8a only. ADEV_ALL_ABIS=1 turns it off.
-real=/root/tools/flutter/bin/flutter
+real=$T/flutter/bin/flutter
 if [ \"\${ADEV_ALL_ABIS:-}\" != 1 ] && [ \"\${1:-}\" = build ]; then
     case \"\${2:-}\" in
         apk|appbundle|aar)
@@ -383,7 +475,7 @@ if [ \"\${ADEV_ALL_ABIS:-}\" != 1 ] && [ \"\${1:-}\" = build ]; then
 fi
 exec \"\$real\" \"\$@\"
 WRAP
-chmod 755 /root/tools/adev-bin/flutter
+chmod 755 $T/adev-bin/flutter
 "
 }
 
@@ -392,19 +484,23 @@ step_node() {
     say "Installing Node.js $NODE_MAJOR with nvm $NVM_VERSION in Ubuntu (the same Node.js REA uses)…"
     inside "
 set -e
-export NVM_DIR=/root/.nvm
+export NVM_DIR=$NVM_HOME
 if [ ! -s \"\$NVM_DIR/nvm.sh\" ]; then
     curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/$NVM_VERSION/install.sh | PROFILE=/dev/null bash
 fi
 . \"\$NVM_DIR/nvm.sh\"
 nvm install $NODE_MAJOR --no-progress
 nvm alias default $NODE_MAJOR >/dev/null
-mkdir -p /root/tools
-ln -sfnr \"\$(dirname \"\$(dirname \"\$(nvm which $NODE_MAJOR)\")\")\" /root/tools/node
-echo \"node \$(/root/tools/node/bin/node -v), npm \$(/root/tools/node/bin/npm -v)\"
+mkdir -p $T
+ln -sfnr \"\$(dirname \"\$(dirname \"\$(nvm which $NODE_MAJOR)\")\")\" $T/node
+echo \"node \$($T/node/bin/node -v), npm \$($T/node/bin/npm -v)\"
 " || die "Node.js install failed"
     # React Native release builds run the x86-64 hermesc through qemu (the Gradle init script wraps it)
-    [ -x "$P/bin/qemu-x86_64" ] || termux_install qemu-user-x86-64
+    if [ "$RUNTIME" = chroot ]; then
+        [ -x "$QEMU" ] || ubuntu_install qemu-user
+    else
+        [ -x "$QEMU" ] || termux_install qemu-user-x86-64
+    fi
     ok "Node.js installed"
 }
 
@@ -414,17 +510,37 @@ step_launcher() {
     if [ "$HERE" != "$SHARE" ]; then
         for f in $FILES; do [ -f "$HERE/$f" ] && cp -f "$HERE/$f" "$SHARE/$f"; done
     fi
+    if [ "$RUNTIME" = chroot ]; then
+        # the chroot's adev runs the command right here; adev-new is the same script with Ubuntu's bash
+        for f in adev-chroot adev-new; do [ -f "$SHARE/$f" ] || die "$SHARE/$f is missing (get the setup files again)"; done
+        chmod 755 "$SHARE"
+        install -m 755 "$SHARE/adev-chroot" "$BIN/adev" || die "Cannot write $BIN/adev"
+        sed '1s|^#!.*|#!/bin/bash|' "$SHARE/adev-new" > "$BIN/adev-new.tmp" && chmod 755 "$BIN/adev-new.tmp" && mv -f "$BIN/adev-new.tmp" "$BIN/adev-new" \
+            || die "Cannot write $BIN/adev-new"
+        ok "adev and adev-new installed in $BIN"
+        return 0
+    fi
     for f in adev adev-new; do [ -f "$SHARE/$f" ] || die "$SHARE/$f is missing (run this script from its own folder)"; done
     chmod 755 "$SHARE/adev" "$SHARE/adev-new" "$SHARE/android-setup.sh" 2>/dev/null
-    ln -sf "$SHARE/adev" "$P/bin/adev"
-    ln -sf "$SHARE/adev-new" "$P/bin/adev-new"
-    ok "adev and adev-new installed in $P/bin"
+    ln -sf "$SHARE/adev" "$BIN/adev"
+    ln -sf "$SHARE/adev-new" "$BIN/adev-new"
+    ok "adev and adev-new installed in $BIN"
 }
 
 step_adb() {
+    if [ "$RUNTIME" = chroot ]; then
+        say "Installing adb and fastboot (Ubuntu's packages) to install and debug apps on this phone…"
+        ubuntu_install adb fastboot
+        if [ -d "$SDK/platform-tools" ]; then
+            ln -sf /usr/bin/adb "$SDK/platform-tools/adb"
+            ln -sf /usr/bin/fastboot "$SDK/platform-tools/fastboot"
+        fi
+        ok "adb and fastboot installed (no sudo needed). Connect adb to this phone in AntiGem Settings → ADB Connect."
+        return 0
+    fi
     say "Installing adb (Termux android-tools) to install and debug apps on this phone…"
     termux_install android-tools
-    [ -d "$ROOTFS$SDK/platform-tools" ] && ln -sf "$P/bin/adb" "$ROOTFS$SDK/platform-tools/adb"
+    [ -d "$ROOTFS$SDK/platform-tools" ] && ln -sf "$ADB" "$ROOTFS$SDK/platform-tools/adb"
     ok "adb installed. Connect it to this phone in AntiGem Settings → ADB Connect."
 }
 
@@ -435,10 +551,11 @@ echo \"java:      \$(java -version 2>&1 | head -1)\"
 echo \"sdk:       \$(ls $SDK/platforms 2>/dev/null | tr '\n' ' ') · build-tools \$(ls $SDK/build-tools 2>/dev/null | tr '\n' ' ')\"
 echo \"aapt2:     \$($AAPT2 version 2>&1 | head -1)\"
 echo \"adb:       \$([ -x $SDK/platform-tools/adb ] && $SDK/platform-tools/adb version 2>/dev/null | head -1 || echo missing)\"
+echo \"fastboot:  \$(command -v fastboot >/dev/null && fastboot --version 2>/dev/null | head -1 || echo missing)\"
 echo \"node:      \$(node -v 2>/dev/null || echo missing)\"
 echo \"flutter:   \$(flutter --version 2>/dev/null | head -1 || echo missing)\"
 echo \"cmake:     \$(cmake --version 2>/dev/null | head -1 || echo missing)\"
-grep -E 'aapt2|jvmargs' /root/.gradle/gradle.properties 2>/dev/null
+grep -E 'aapt2|jvmargs' $GH/gradle.properties 2>/dev/null
 "
     return 0
 }
@@ -474,7 +591,7 @@ while n: n, r = divmod(n, 36); out = d[r] + out
 print(out or '0')
 PY
 )
-dir=/root/.gradle/wrapper/dists/$version/\$h
+dir=$GH/wrapper/dists/$version/\$h
 mkdir -p \$dir
 if [ -f \$dir/$version.zip.ok ]; then echo 'Already installed'; exit 0; fi
 src='$url'
@@ -485,31 +602,33 @@ echo '$sum  '\$dir/$version.zip.part | sha256sum -c --status || { rm -f \$dir/$v
 mv \$dir/$version.zip.part \$dir/$version.zip
 echo \"Saved in \$dir (checksum OK)\"
 " || die "Could not get $version"
+    give_user "$GH"
     ok "$version is in the wrapper's cache: the next build uses it"
 }
 
 # test <compose|flutter|rn>: creates ~/AndroidProjects/hello-<kind> once and builds its debug APK
 step_test() {
     local kind="${1:-}" dir apk
-    [ -x "$P/bin/adev-new" ] || die "Needs the 'launcher' step first."
-    dir="$H/AndroidProjects/hello-$kind"
+    [ -x "$BIN/adev-new" ] || die "Needs the 'launcher' step first."
+    dir="$PROJECTS/hello-$kind"
     case "$kind" in
         compose) need_in "$SDK/cmdline-tools/latest/lib/sdkmanager-classpath.jar" sdk; apk="$dir/app/build/outputs/apk/debug/app-debug.apk" ;;
-        flutter) need_in /root/tools/flutter/bin/cache/dart-sdk/bin/dart flutter; apk="$dir/build/app/outputs/flutter-apk/app-debug.apk" ;;
-        rn) need_in /root/tools/node/bin/node node; need_in "$SDK/ndk-arm64.txt" ndk; apk="$dir/android/app/build/outputs/apk/debug/app-debug.apk" ;;
+        flutter) need_in $T/flutter/bin/cache/dart-sdk/bin/dart flutter; apk="$dir/build/app/outputs/flutter-apk/app-debug.apk" ;;
+        rn) need_in $T/node/bin/node node; need_in "$SDK/ndk-arm64.txt" ndk; apk="$dir/android/app/build/outputs/apk/debug/app-debug.apk" ;;
         *) die "test needs compose, flutter or rn" ;;
     esac
-    mkdir -p "$H/AndroidProjects"
+    # in the chroot the project and the build belong to the user, like their own builds
+    as_user mkdir -p "$PROJECTS"
     if [ ! -e "$dir" ]; then
-        "$P/bin/adev-new" "$kind" "$dir" || die "Could not create the $kind test project"
+        (cd "$PROJECTS" && as_user "$BIN/adev-new" "$kind" "$dir") || die "Could not create the $kind test project"
     fi
     # The wrapper downloads Gradle once, without retries in older wrappers: fetch it first, with retries
     (step_gradle_dist "$dir") || say "Could not fetch Gradle ahead; the build tries itself."
     say "Building $dir (the first build downloads Gradle and libraries: several minutes)…"
     case "$kind" in
-        compose) (cd "$dir" && "$P/bin/adev" ./gradlew assembleDebug --console=plain) ;;
-        flutter) (cd "$dir" && "$P/bin/adev" flutter build apk --debug) ;;
-        rn) (cd "$dir/android" && "$P/bin/adev" ./gradlew assembleDebug --console=plain) ;;
+        compose) (cd "$dir" && as_user "$BIN/adev" ./gradlew assembleDebug --console=plain) ;;
+        flutter) (cd "$dir" && as_user "$BIN/adev" flutter build apk --debug) ;;
+        rn) (cd "$dir/android" && as_user "$BIN/adev" ./gradlew assembleDebug --console=plain) ;;
     esac || die "The $kind test build failed (see above)"
     [ -f "$apk" ] || die "The build finished but $apk is missing"
     ok "Built $apk ($(du -h "$apk" | cut -f1))"
@@ -521,41 +640,74 @@ step_status() {
     echo "base=$( [ -e "$ROOTFS/usr/bin/git" ] && [ -e "$ROOTFS/usr/bin/zip" ] && echo yes || echo no)"
     echo "java=$(installed "$ROOTFS$JAVA_HOME_IN/bin/javac")"
     echo "sdk=$( [ -e "$ROOTFS$SDK/cmdline-tools/latest/lib/sdkmanager-classpath.jar" ] && ls -d "$ROOTFS$SDK"/platforms/android-* >/dev/null 2>&1 && [ -x "$AAPT2" ] && echo yes || echo no)"
-    echo "launcher=$(installed "$P/bin/adev")"
-    echo "flutter=$(installed "$ROOTFS/root/tools/flutter/bin/cache/dart-sdk/bin/dart")"
-    echo "flutter-release=$( [ -e "$ROOTFS/root/tools/flutter/bin/cache/artifacts/engine/android-arm64-release/linux-arm64/gen_snapshot" ] && [ -x "$P/bin/qemu-x86_64" ] && echo yes || echo no)"
-    echo "node=$(installed "$ROOTFS/root/tools/node/bin/node")"
+    echo "launcher=$(installed "$BIN/adev")"
+    echo "flutter=$(installed "$ROOTFS$T/flutter/bin/cache/dart-sdk/bin/dart")"
+    echo "flutter-release=$( [ -e "$ROOTFS$T/flutter/bin/cache/artifacts/engine/android-arm64-release/linux-arm64/gen_snapshot" ] && [ -x "$QEMU" ] && echo yes || echo no)"
+    echo "node=$(installed "$ROOTFS$T/node/bin/node")"
     echo "ndk=$( [ -f "$ROOTFS$SDK/ndk-arm64.txt" ] && [ -x "$ROOTFS$SDK/ndk/$NDK_VERSION/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" ] && echo yes || echo no)"
-    echo "adb=$(installed "$P/bin/adb")"
+    if [ "$RUNTIME" = chroot ]; then
+        echo "adb=$( [ -e /usr/bin/adb ] && [ -e /usr/bin/fastboot ] && echo yes || echo no)"
+    else
+        echo "adb=$(installed "$ADB")"
+    fi
+    # versions and where things are, for the app (it cannot read the chroot's files itself)
+    echo "os=$(grep -m1 '^PRETTY_NAME=' "$ROOTFS/etc/os-release" 2>/dev/null | cut -d'"' -f2)"
+    echo "projects=$PROJECTS"
+    echo "flutter_version=$(sed -n 's/^ *"frameworkVersion": *"\([^"]*\)".*/\1/p' "$ROOTFS$T/flutter/bin/cache/flutter.version.json" 2>/dev/null | head -1)"
+    echo "node_version=$(basename "$(readlink -f "$ROOTFS$T/node" 2>/dev/null)" 2>/dev/null | grep '^v' || true)"
+    echo "platforms=$(ls "$ROOTFS$SDK/platforms" 2>/dev/null | tr '\n' ' ')"
+    local k a
+    for k in compose flutter rn; do
+        case $k in
+            compose) a="$PROJECTS/hello-compose/app/build/outputs/apk/debug/app-debug.apk" ;;
+            flutter) a="$PROJECTS/hello-flutter/build/app/outputs/flutter-apk/app-debug.apk" ;;
+            rn) a="$PROJECTS/hello-rn/android/app/build/outputs/apk/debug/app-debug.apk" ;;
+        esac
+        [ -f "$a" ] && echo "apk_$k=$a"
+    done
+    return 0
 }
 
 step_uninstall_flutter() {
     say "Removing Flutter and its caches…"
-    has_container && inside "rm -rf /root/tools/flutter /root/tools/adev-bin /root/.pub-cache /root/.flutter /root/.dart-tool /root/.config/flutter"
+    local uh=/root
+    [ "$RUNTIME" = chroot ] && uh="$UH"
+    has_container && inside "rm -rf $T/flutter $T/adev-bin $uh/.pub-cache $uh/.flutter $uh/.dart-tool $uh/.config/flutter"
     ok "Flutter removed"
 }
 
 step_uninstall() {
     say "Removing the Android SDK, Flutter, the Gradle cache and the adev commands (the container, Java and Node.js stay)…"
-    if has_container; then
-        inside "rm -rf $SDK /root/tools/flutter /root/tools/adev-bin /root/.pub-cache /root/.flutter /root/.gradle /root/.android /etc/profile.d/antigem-android.sh; true"
+    if [ "$RUNTIME" = chroot ]; then
+        # the user's ~/.android stays: adb's pairing keys live there
+        inside "rm -rf $SDK $T/flutter $T/adev-bin $UH/.pub-cache $UH/.flutter $UH/.dart-tool $UH/.config/flutter $GH /etc/profile.d/antigem-android.sh; true"
+    elif has_container; then
+        inside "rm -rf $SDK $T/flutter $T/adev-bin /root/.pub-cache /root/.flutter $GH /root/.android /etc/profile.d/antigem-android.sh; true"
     fi
-    rm -f "$P/bin/adev" "$P/bin/adev-new"
+    rm -f "$BIN/adev" "$BIN/adev-new"
     rm -rf "$SHARE"
-    ok "Android development tools removed. Your projects are untouched. To delete the whole container: proot-distro remove $C"
+    if [ "$RUNTIME" = chroot ]; then
+        ok "Android development tools removed. Your projects are untouched; Java, Node.js, adb and fastboot stay in the chroot."
+    else
+        ok "Android development tools removed. Your projects are untouched. To delete the whole container: proot-distro remove $C"
+    fi
 }
 
 step_clean_cache() {
     say "Deleting Gradle's caches and downloaded Gradle versions (they come back on the next build)…"
-    has_container && inside "rm -rf /root/.gradle/caches /root/.gradle/wrapper/dists /root/.gradle/daemon /root/.gradle/native; du -sh /root/.gradle 2>/dev/null"
+    has_container && inside "rm -rf $GH/caches $GH/wrapper/dists $GH/daemon $GH/native; du -sh $GH 2>/dev/null"
     ok "Gradle cache cleaned"
 }
 
 usage() {
     cat <<EOF
-AntiGem Android development setup: tools run in the proot-distro container '$C' ($IMAGE), shared with REA.
+AntiGem Android development setup. In AntiGem's terminal the tools run in the proot-distro container '$C'
+($IMAGE), shared with REA; in AntiGem's Ubuntu chroot they run in the chroot itself (tools and the SDK in
+/opt/antigem, adev and adev-new in /usr/local/bin, Ubuntu's arm64 aapt2, adb, fastboot and qemu-user).
 
 Usage: bash android-setup.sh STEP [STEP...]
+       sudo env ANTIGEM_RUNTIME=chroot bash android-setup.sh STEP [STEP...]   (in the Ubuntu chroot; AntiGem's Settings →
+                                                                         Android Development does this for you)
 
 Groups of steps
   kotlin      container base java sdk launcher           Kotlin / Java / Jetpack Compose apps (start here)
@@ -564,19 +716,20 @@ Groups of steps
   all         kotlin + flutter flutter-release node ndk adb
 
 Steps (each can be rerun to repair or update)
-  container   proot-distro and the Ubuntu 24.04 container
+  container   proot-distro and the Ubuntu 24.04 container (in the Ubuntu chroot: nothing to install)
   base        curl, git, zip, unzip, xz, Python in Ubuntu
   java        OpenJDK 21 headless (Gradle, the Android SDK tools)
-  sdk         Android command-line tools, $SDK_PLATFORMS, build-tools $SDK_BUILD_TOOLS, Termux's arm64 aapt2,
-              Gradle settings for the phone (/root/.gradle/gradle.properties)
+  sdk         Android command-line tools, $SDK_PLATFORMS, build-tools $SDK_BUILD_TOOLS, an arm64 aapt2 (Termux's;
+              in the chroot Ubuntu's),
+              Gradle settings for the phone ($GH/gradle.properties)
   launcher    the adev (run a command with the tools) and adev-new (new project) commands
   flutter     Flutter stable + its Android engine files
-  flutter-release  Termux qemu-user + Ubuntu's x86-64 C library: Flutter release / profile builds (gen_snapshot is
+  flutter-release  qemu-user (Termux's; in the chroot Ubuntu's) + Ubuntu's x86-64 C library: Flutter release / profile builds (gen_snapshot is
               x86-64 only; it runs emulated, a few minutes per build)
   node        Node.js $NODE_MAJOR through nvm (React Native, Expo)
   ndk         NDK $NDK_VERSION + CMake for C/C++ code (React Native): Google's packages with their x86-64
               programs swapped for Ubuntu's arm64 LLVM, CMake and Ninja (≈1.5 GB)
-  adb         adb in Termux, to install apps on this phone
+  adb         adb in Termux (in the chroot: Ubuntu's adb and fastboot, no sudo needed), to install apps on this phone
 
 Other
   gradle-dist [DIR|VERSION] [--mirror URL]   fetch a project's Gradle zip into the wrapper cache (when the

@@ -9,15 +9,42 @@
 # Source: antigem_plugins/rea/skills/rea/scripts/ (AntiGem downloads this folder into $PREFIX/share/antigem-rea/).
 set -uo pipefail
 
-P=/data/data/com.termux/files/usr
-H=/data/data/com.termux/files/home
-export PREFIX="$P" PATH="$P/bin:$PATH" TMPDIR="${TMPDIR:-$P/tmp}" DEBIAN_FRONTEND=noninteractive
+say() { printf '==> %s\n' "$*"; }
+ok() { printf '✓ %s\n' "$*"; }
+die() { printf '✗ %s\n' "$*" >&2; exit 1; }
+
+# Where REA runs. In AntiGem's terminal (Termux): a proot-distro Ubuntu container. In AntiGem's Ubuntu chroot (rooted
+# phones): that Ubuntu itself, no container. There AntiGem runs this script inside the chroot as root with
+# ANTIGEM_RUNTIME=chroot and ANTIGEM_USER=<the chroot's user>: the tools go to /opt/antigem (every user can run them),
+# the launchers to /usr/local/bin and the tool groups to the user's ~/.config/antigem/rea.
+RUNTIME="${ANTIGEM_RUNTIME:-termux}"
 C="${REA_CONTAINER:-ubuntu}"
 IMAGE="${REA_IMAGE:-ubuntu:24.04}"
-ROOTFS="$P/var/lib/proot-distro/containers/$C/rootfs"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SHARE="$P/share/antigem-rea"
-CONF="$H/.config/antigem/rea"
+if [ "$RUNTIME" = chroot ]; then
+    [ "$(id -u)" = 0 ] || die "In the Ubuntu chroot this script runs as root: sudo env ANTIGEM_RUNTIME=chroot bash $0 ${*:-help}"
+    U="${ANTIGEM_USER:-${SUDO_USER:-}}"
+    UH=""
+    [ -n "$U" ] && UH=$(getent passwd "$U" | cut -d: -f6)
+    [ -n "$UH" ] || { U=""; UH=/root; }
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin DEBIAN_FRONTEND=noninteractive
+    ROOTFS=""
+    T=/opt/antigem/tools
+    NVM_HOME=/opt/antigem/nvm
+    SHARE=/opt/antigem/share/antigem-rea
+    BIN=/usr/local/bin
+    CONF="$UH/.config/antigem/rea"
+else
+    P=/data/data/com.termux/files/usr
+    H=/data/data/com.termux/files/home
+    export PREFIX="$P" PATH="$P/bin:$PATH" TMPDIR="${TMPDIR:-$P/tmp}" DEBIAN_FRONTEND=noninteractive
+    ROOTFS="$P/var/lib/proot-distro/containers/$C/rootfs"
+    T=/root/tools
+    NVM_HOME=/root/.nvm
+    SHARE="$P/share/antigem-rea"
+    BIN="$P/bin"
+    CONF="$H/.config/antigem/rea"
+fi
 NODE_MAJOR=24
 NVM_VERSION=v0.40.3
 JADX_VERSION=0.7.1
@@ -25,23 +52,35 @@ JADX_JAR="jadx-headless-mcp-$JADX_VERSION-all.jar"
 JADX_URL="https://github.com/1013503897/jadx-headless-mcp/releases/download/v$JADX_VERSION/$JADX_JAR"
 APKTOOL_FALLBACK=3.0.3
 KEEP="-o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold"
-JAVA_BIN=/usr/lib/jvm/java-21-openjdk-arm64/bin/java   # real file: /usr/bin/java is an absolute symlink the Termux side cannot follow
-IN_PATH=/root/tools/node/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-say() { printf '==> %s\n' "$*"; }
-ok() { printf '✓ %s\n' "$*"; }
-die() { printf '✗ %s\n' "$*" >&2; exit 1; }
+# Ubuntu's name for this CPU, in its JDK folder (java-21-openjdk-arm64 / -amd64)
+case "$(uname -m)" in x86_64) DEB_ARCH=amd64 ;; *) DEB_ARCH=arm64 ;; esac
+JAVA_BIN=/usr/lib/jvm/java-21-openjdk-$DEB_ARCH/bin/java   # real file: /usr/bin/java is an absolute symlink the Termux side cannot follow
+IN_PATH=$T/node/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 has_container() { [ -x "$ROOTFS/usr/bin/apt-get" ]; }
 need_container() { has_container || die "The '$C' Ubuntu container is not installed yet. Run the 'container' step first."; }
-# Runs a bash script inside the container, with a clean environment (no Termux PATH)
+# Runs a bash script inside the container (in the chroot: right here, as root), with a clean environment (no Termux PATH)
 inside() {
+    if [ "$RUNTIME" = chroot ]; then
+        /usr/bin/env -i HOME=/root TERM=dumb LANG=C.UTF-8 DEBIAN_FRONTEND=noninteractive "PATH=$IN_PATH" /bin/bash -c "$1"
+        return
+    fi
     proot-distro login "$C" --shared-tmp -b "$H:/data/user/0/com.termux/files/home" -- /usr/bin/env -i HOME=/root TERM=dumb LANG=C.UTF-8 \
         DEBIAN_FRONTEND=noninteractive "PATH=$IN_PATH" /bin/bash -c "$1"
 }
 
+# In the chroot: runs a command as the chroot's user (their HOME, files they own). In Termux: as is.
+as_user() {
+    if [ "$RUNTIME" = chroot ] && [ -n "$U" ]; then
+        runuser -u "$U" -- /usr/bin/env HOME="$UH" LANG=C.UTF-8 "PATH=$PATH" "$@"
+    else
+        "$@"
+    fi
+}
+
 TERMUX_UPDATED=""
 termux_install() {
+    [ "$RUNTIME" = chroot ] && die "Termux packages ($*) are not used in the Ubuntu chroot"
     dpkg --configure -a >/dev/null 2>&1   # finishes an install that was stopped half way
     if [ -z "$TERMUX_UPDATED" ]; then apt-get update -q || die "apt-get update failed in Termux (check the network, or run: pkg upgrade)"; TERMUX_UPDATED=1; fi
     # shellcheck disable=SC2086
@@ -65,6 +104,10 @@ need_in() { # need_in <path inside the container> <step that provides it>
 # ---------------- steps ----------------
 
 step_container() {
+    if [ "$RUNTIME" = chroot ]; then
+        ok "REA installs straight into AntiGem's Ubuntu chroot: $(grep -m1 '^PRETTY_NAME=' /etc/os-release 2>/dev/null | cut -d'"' -f2)"
+        return 0
+    fi
     command -v proot-distro >/dev/null 2>&1 || termux_install proot-distro
     if has_container; then
         ok "Container '$C' is installed: $(grep -m1 '^PRETTY_NAME=' "$ROOTFS/etc/os-release" 2>/dev/null | cut -d'"' -f2)"
@@ -97,19 +140,19 @@ step_node() {
     say "Installing Node.js $NODE_MAJOR with nvm $NVM_VERSION in Ubuntu…"
     inside "
 set -e
-export NVM_DIR=/root/.nvm
-prev=\$(readlink -f /root/tools/node 2>/dev/null || true)
+export NVM_DIR=$NVM_HOME
+prev=\$(readlink -f $T/node 2>/dev/null || true)
 if [ ! -s \"\$NVM_DIR/nvm.sh\" ]; then
     curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/$NVM_VERSION/install.sh | bash
 fi
 . \"\$NVM_DIR/nvm.sh\"
 nvm install $NODE_MAJOR --no-progress
 nvm alias default $NODE_MAJOR >/dev/null
-mkdir -p /root/tools
-ln -sfnr \"\$(dirname \"\$(dirname \"\$(nvm which $NODE_MAJOR)\")\")\" /root/tools/node
-echo \"node \$(/root/tools/node/bin/node -v), npm \$(/root/tools/node/bin/npm -v)\"
+mkdir -p $T
+ln -sfnr \"\$(dirname \"\$(dirname \"\$(nvm which $NODE_MAJOR)\")\")\" $T/node
+echo \"node \$($T/node/bin/node -v), npm \$($T/node/bin/npm -v)\"
 # A newer Node has its own global packages: bring REA along
-if [ -n \"\$prev\" ] && [ -d \"\$prev/lib/node_modules/rea-agents\" ] && [ ! -d /root/tools/node/lib/node_modules/rea-agents ]; then
+if [ -n \"\$prev\" ] && [ -d \"\$prev/lib/node_modules/rea-agents\" ] && [ ! -d $T/node/lib/node_modules/rea-agents ]; then
     echo 'Reinstalling REA for the new Node…'
     npm install -g rea-agents@latest --no-fund --no-audit
 fi
@@ -118,18 +161,18 @@ fi
 }
 
 step_rea() {
-    need_in /root/tools/node/bin/node node
+    need_in $T/node/bin/node node
     say "Installing REA (npm rea-agents)…"
     inside "npm install -g rea-agents@latest --no-fund --no-audit && echo \"REA \$(rea --version)\"" || die "npm could not install rea-agents"
     ok "REA installed"
-    [ -x "$P/bin/rea-mcp" ] && { (step_tools) || say "Could not refresh the tool list now; Settings → REA → Refresh tool list retries."; }
+    [ -x "$BIN/rea-mcp" ] && { (step_tools) || say "Could not refresh the tool list now; Settings → REA → Refresh tool list retries."; }
     return 0
 }
 
 step_jadx() {
     need_in /usr/bin/curl base
     say "Downloading jadx-headless-mcp $JADX_VERSION (JADX bridge REA uses)…"
-    inside "set -e; mkdir -p /root/tools; curl -fL --retry 3 -o /root/tools/$JADX_JAR.part '$JADX_URL'; mv /root/tools/$JADX_JAR.part /root/tools/$JADX_JAR; ls -la /root/tools/$JADX_JAR" \
+    inside "set -e; mkdir -p $T; curl -fL --retry 3 -o $T/$JADX_JAR.part '$JADX_URL'; mv $T/$JADX_JAR.part $T/$JADX_JAR; ls -la $T/$JADX_JAR" \
         || die "Could not download $JADX_URL"
     [ -e "$ROOTFS$JAVA_BIN" ] || say "Note: JADX also needs the 'java' step."
     ok "JADX bridge installed"
@@ -143,10 +186,10 @@ set -e
 v=\$(curl -fsSL https://api.github.com/repos/iBotPeaches/Apktool/releases/latest 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)[\"tag_name\"].lstrip(\"v\"))' 2>/dev/null || true)
 [ -n \"\$v\" ] || v=$APKTOOL_FALLBACK
 echo \"apktool \$v\"
-mkdir -p /root/tools
-curl -fL --retry 3 -o /root/tools/apktool.jar.part \"https://github.com/iBotPeaches/Apktool/releases/download/v\$v/apktool_\$v.jar\"
-mv /root/tools/apktool.jar.part /root/tools/apktool.jar
-printf '#!/bin/sh\nexec java -jar /root/tools/apktool.jar \"\$@\"\n' > /usr/local/bin/apktool
+mkdir -p $T
+curl -fL --retry 3 -o $T/apktool.jar.part \"https://github.com/iBotPeaches/Apktool/releases/download/v\$v/apktool_\$v.jar\"
+mv $T/apktool.jar.part $T/apktool.jar
+printf '#!/bin/sh\nexec java -jar $T/apktool.jar \"\$@\"\n' > /usr/local/bin/apktool
 chmod 755 /usr/local/bin/apktool
 " || die "Could not install apktool"
     [ -e "$ROOTFS$JAVA_BIN" ] || say "Note: apktool also needs the 'java' step."
@@ -154,6 +197,17 @@ chmod 755 /usr/local/bin/apktool
 }
 
 step_native() {
+    if [ "$RUNTIME" = chroot ]; then
+        say "Installing native code tools: objdump (binutils) and rizin when this Ubuntu has it…"
+        ubuntu_install binutils
+        if apt-cache show rizin >/dev/null 2>&1; then
+            ubuntu_install rizin
+            ok "objdump and rizin installed"
+        else
+            ok "objdump installed. This Ubuntu has no rizin package (Ubuntu 24.04 has none), so REA's rizin tools stay off; install rizin yourself (github.com/rizinorg/rizin) and REA finds it on PATH."
+        fi
+        return 0
+    fi
     say "Installing native code tools: objdump (Ubuntu binutils) and rizin (Termux)…"
     ubuntu_install binutils
     termux_install rizin
@@ -161,6 +215,12 @@ step_native() {
 }
 
 step_adb() {
+    if [ "$RUNTIME" = chroot ]; then
+        say "Installing adb and fastboot (Ubuntu's packages)…"
+        ubuntu_install adb fastboot
+        ok "adb and fastboot installed. Connect adb to this phone in AntiGem Settings → ADB Connect."
+        return 0
+    fi
     say "Installing adb (Termux android-tools)…"
     termux_install android-tools
     ok "adb installed. Connect it to this phone in AntiGem Settings → ADB Connect."
@@ -172,9 +232,9 @@ step_hermes() {
     ubuntu_install python3-venv
     inside "
 set -e
-[ -x /root/tools/hermes/bin/pip ] || python3 -m venv /root/tools/hermes
-/root/tools/hermes/bin/pip install -q --upgrade hermes-dec
-for f in /root/tools/hermes/bin/hbc-*; do ln -sf \"\$f\" /usr/local/bin/; done
+[ -x $T/hermes/bin/pip ] || python3 -m venv $T/hermes
+$T/hermes/bin/pip install -q --upgrade hermes-dec
+for f in $T/hermes/bin/hbc-*; do ln -sf \"\$f\" /usr/local/bin/; done
 ls /usr/local/bin | grep hbc-
 " || die "Could not install hermes-dec"
     ok "hermes-dec installed (hbc-decompiler, hbc-disassembler, hbc-file-parser)"
@@ -194,33 +254,47 @@ step_firmware() {
 
 step_launcher() {
     say "Installing the rea-mcp launcher, rea-shell and the tool filter…"
-    mkdir -p "$SHARE" "$CONF" || die "Cannot create $SHARE"
+    mkdir -p "$SHARE" || die "Cannot create $SHARE"
+    as_user mkdir -p "$CONF" || die "Cannot create $CONF"
     if [ "$HERE" != "$SHARE" ]; then
-        for f in files.json rea-setup.sh rea-mcp rea-shell rea-filter.mjs groups.default.json; do
+        for f in files.json rea-setup.sh rea-mcp rea-shell rea-mcp-chroot rea-shell-chroot rea-filter.mjs groups.default.json; do
             [ -f "$HERE/$f" ] && cp -f "$HERE/$f" "$SHARE/$f"
         done
     fi
-    for f in rea-mcp rea-shell rea-filter.mjs groups.default.json; do
-        [ -f "$SHARE/$f" ] || die "$SHARE/$f is missing (run this script from its own folder)"
-    done
-    chmod 755 "$SHARE/rea-mcp" "$SHARE/rea-shell" "$SHARE/rea-setup.sh" 2>/dev/null
-    ln -sf "$SHARE/rea-mcp" "$P/bin/rea-mcp"
-    ln -sf "$SHARE/rea-shell" "$P/bin/rea-shell"
+    if [ "$RUNTIME" = chroot ]; then
+        # The chroot's own launchers: REA runs right here, no container
+        for f in rea-mcp-chroot rea-shell-chroot rea-filter.mjs groups.default.json; do
+            [ -f "$SHARE/$f" ] || die "$SHARE/$f is missing (get the setup files again)"
+        done
+        chmod 755 "$SHARE"
+        chmod 644 "$SHARE"/*.json "$SHARE"/*.mjs 2>/dev/null
+        install -m 755 "$SHARE/rea-mcp-chroot" "$BIN/rea-mcp" || die "Cannot write $BIN/rea-mcp"
+        install -m 755 "$SHARE/rea-shell-chroot" "$BIN/rea-shell" || die "Cannot write $BIN/rea-shell"
+    else
+        for f in rea-mcp rea-shell rea-filter.mjs groups.default.json; do
+            [ -f "$SHARE/$f" ] || die "$SHARE/$f is missing (run this script from its own folder)"
+        done
+        chmod 755 "$SHARE/rea-mcp" "$SHARE/rea-shell" "$SHARE/rea-setup.sh" 2>/dev/null
+        ln -sf "$SHARE/rea-mcp" "$BIN/rea-mcp"
+        ln -sf "$SHARE/rea-shell" "$BIN/rea-shell"
+    fi
     if [ ! -f "$CONF/groups.json" ]; then
-        cp "$SHARE/groups.default.json" "$CONF/groups.json"
+        as_user cp "$SHARE/groups.default.json" "$CONF/groups.json"
         ok "Default tool groups written to $CONF/groups.json"
     fi
-    ok "rea-mcp and rea-shell installed in $P/bin"
-    [ -e "$ROOTFS/root/tools/node/lib/node_modules/rea-agents" ] && { (step_tools) || say "Could not refresh the tool list now; Settings → REA → Refresh tool list retries."; }
+    ok "rea-mcp and rea-shell installed in $BIN"
+    [ -e "$ROOTFS$T/node/lib/node_modules/rea-agents" ] && { (step_tools) || say "Could not refresh the tool list now; Settings → REA → Refresh tool list retries."; }
     return 0
 }
 
 step_tools() {
-    [ -x "$P/bin/rea-mcp" ] || die "Needs the 'launcher' step first."
-    need_in /root/tools/node/lib/node_modules/rea-agents rea
+    [ -x "$BIN/rea-mcp" ] || die "Needs the 'launcher' step first."
+    need_in $T/node/lib/node_modules/rea-agents rea
     say "Reading REA's tool list…"
-    mkdir -p "$CONF"
-    if "$P/bin/rea-mcp" --list-tools > "$CONF/tools.json.part"; then
+    as_user mkdir -p "$CONF"
+    # in the chroot REA runs as the user, like the agents start it
+    if as_user "$BIN/rea-mcp" --list-tools > "$CONF/tools.json.part"; then
+        [ "$RUNTIME" = chroot ] && [ -n "$U" ] && chown "$U:$(id -gn "$U")" "$CONF/tools.json.part"
         mv "$CONF/tools.json.part" "$CONF/tools.json"
         ok "$(grep -c '"required":' "$CONF/tools.json") tools listed in $CONF/tools.json"
     else
@@ -230,8 +304,8 @@ step_tools() {
 }
 
 step_doctor() {
-    [ -x "$P/bin/rea-mcp" ] || die "Needs the 'launcher' step first."
-    "$P/bin/rea-mcp" --doctor
+    [ -x "$BIN/rea-mcp" ] || die "Needs the 'launcher' step first."
+    as_user "$BIN/rea-mcp" --doctor
     return 0
 }
 
@@ -240,56 +314,76 @@ step_status() {
     echo "container=$(installed "$ROOTFS/usr/bin/apt-get")"
     echo "base=$(installed "$ROOTFS/usr/bin/curl")"
     echo "java=$(installed "$ROOTFS$JAVA_BIN")"
-    echo "node=$(installed "$ROOTFS/root/tools/node/bin/node")"
-    echo "rea=$(installed "$ROOTFS/root/tools/node/lib/node_modules/rea-agents/package.json")"
-    echo "jadx=$(installed "$ROOTFS/root/tools/$JADX_JAR")"
-    echo "apktool=$(installed "$ROOTFS/root/tools/apktool.jar")"
-    echo "launcher=$(installed "$P/bin/rea-mcp")"
-    echo "native=$( [ -e "$ROOTFS/usr/bin/objdump" ] && [ -e "$P/bin/rizin" ] && echo yes || echo no)"
-    echo "adb=$(installed "$P/bin/adb")"
-    echo "hermes=$(installed "$ROOTFS/root/tools/hermes/bin/hbc-decompiler")"
+    echo "node=$(installed "$ROOTFS$T/node/bin/node")"
+    echo "rea=$(installed "$ROOTFS$T/node/lib/node_modules/rea-agents/package.json")"
+    echo "jadx=$(installed "$ROOTFS$T/$JADX_JAR")"
+    echo "apktool=$(installed "$ROOTFS$T/apktool.jar")"
+    echo "launcher=$(installed "$BIN/rea-mcp")"
+    if [ "$RUNTIME" = chroot ]; then
+        # Ubuntu has no rizin package to install with it: objdump alone counts, rizin is reported on its own
+        echo "native=$(installed /usr/bin/objdump)"
+        echo "rizin=$(command -v rizin >/dev/null 2>&1 && echo yes || echo no)"
+        echo "adb=$( [ -e /usr/bin/adb ] && [ -e /usr/bin/fastboot ] && echo yes || echo no)"
+    else
+        echo "native=$( [ -e "$ROOTFS/usr/bin/objdump" ] && [ -e "$P/bin/rizin" ] && echo yes || echo no)"
+        echo "adb=$(installed "$P/bin/adb")"
+    fi
+    echo "hermes=$(installed "$ROOTFS$T/hermes/bin/hbc-decompiler")"
     echo "debug=$(installed "$ROOTFS/usr/bin/gdb")"
     echo "firmware=$(installed "$ROOTFS/usr/bin/binwalk")"
+    # versions and where things are, for the app (it cannot read the chroot's files itself)
+    echo "rea_version=$(sed -n 's/^ *"version": *"\([^"]*\)".*/\1/p' "$ROOTFS$T/node/lib/node_modules/rea-agents/package.json" 2>/dev/null | head -1)"
+    echo "node_version=$(basename "$(readlink -f "$ROOTFS$T/node" 2>/dev/null)" 2>/dev/null | grep '^v' || true)"
+    echo "os=$(grep -m1 '^PRETTY_NAME=' "$ROOTFS/etc/os-release" 2>/dev/null | cut -d'"' -f2)"
+    echo "conf=$CONF"
 }
 
 step_uninstall() {
     say "Removing REA, its jars, hermes-dec and the launcher (the Ubuntu container, Java and Node stay)…"
     if has_container; then
-        inside "[ -x /root/tools/node/bin/npm ] && npm uninstall -g rea-agents; rm -rf /root/tools/$JADX_JAR /root/tools/apktool.jar /usr/local/bin/apktool /root/tools/hermes /usr/local/bin/hbc-*; true"
+        inside "[ -x $T/node/bin/npm ] && npm uninstall -g rea-agents; rm -rf $T/$JADX_JAR $T/apktool.jar /usr/local/bin/apktool $T/hermes /usr/local/bin/hbc-*; true"
     fi
-    rm -f "$P/bin/rea-mcp" "$P/bin/rea-shell"
+    rm -f "$BIN/rea-mcp" "$BIN/rea-shell"
     rm -rf "$SHARE"
-    ok "REA removed. Your tool groups stay in $CONF. To delete the whole container: proot-distro remove $C"
+    if [ "$RUNTIME" = chroot ]; then
+        ok "REA removed. Your tool groups stay in $CONF; Java and Node.js stay in the chroot ($T)."
+    else
+        ok "REA removed. Your tool groups stay in $CONF. To delete the whole container: proot-distro remove $C"
+    fi
 }
 
 step_remove_container() {
+    [ "$RUNTIME" = chroot ] && die "This is AntiGem's Ubuntu chroot, not a container: delete it in AntiGem Settings → Where agents run → Ubuntu chroot."
     say "Deleting the '$C' container and everything in it…"
     yes | proot-distro remove "$C" || die "proot-distro could not remove '$C'"
-    rm -f "$P/bin/rea-mcp" "$P/bin/rea-shell"
+    rm -f "$BIN/rea-mcp" "$BIN/rea-shell"
     ok "Container '$C' deleted"
 }
 
 usage() {
     cat <<EOF
-AntiGem REA setup: REA runs in the proot-distro container '$C' ($IMAGE).
+AntiGem REA setup. In AntiGem's terminal REA runs in the proot-distro container '$C' ($IMAGE); in AntiGem's
+Ubuntu chroot it runs in the chroot itself (tools in /opt/antigem, launchers in /usr/local/bin).
 
 Usage: bash rea-setup.sh STEP [STEP...]
+       sudo env ANTIGEM_RUNTIME=chroot bash rea-setup.sh STEP [STEP...]   (in the Ubuntu chroot; AntiGem's Settings → REA
+                                                                     does this for you)
 
 Groups of steps
   android     container base java node rea jadx apktool native launcher (APK analysis, recommended)
   all         android + adb hermes debug firmware
 
 Steps (each can be rerun to repair or update)
-  container   proot-distro and the Ubuntu 24.04 container
+  container   proot-distro and the Ubuntu 24.04 container (in the Ubuntu chroot: nothing to install)
   base        curl, Python, git, unzip in Ubuntu (needed by node, jadx, apktool, hermes)
   java        OpenJDK 21 headless (JADX and apktool run on it)
   node        Node.js $NODE_MAJOR through nvm (REA runs on it)
   rea         REA itself (npm rea-agents); rerun to update
   jadx        jadx-headless-mcp $JADX_VERSION jar: Java/Kotlin decompiling of APKs
   apktool     latest apktool jar: manifest, resources and strings
-  native      objdump (Ubuntu) and rizin (Termux) for .so libraries
+  native      objdump (Ubuntu) and rizin (Termux; in the chroot only if Ubuntu packages it) for .so libraries
   launcher    rea-mcp (the MCP server command), rea-shell and the tool filter
-  adb         adb in Termux, for REA's device tools
+  adb         adb in Termux (in the chroot: Ubuntu's adb and fastboot), for REA's device tools
   hermes      hermes-dec for React Native Hermes bytecode
   debug       gdb
   firmware    binwalk

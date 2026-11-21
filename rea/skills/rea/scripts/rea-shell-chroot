@@ -1,0 +1,18 @@
+#!/bin/bash
+# AntiGem · run a command with REA's tools on PATH in AntiGem's Ubuntu chroot (node, rea, apktool, the JADX jar,
+# hbc-decompiler, objdump, gdb, binwalk, adb). Everything already runs right here; this only adds REA's tools.
+#
+#   rea-shell                                    a shell with REA's tools
+#   rea-shell 'hbc-decompiler in.bundle out.js'  one command (runs in the current folder)
+#
+# Installed by rea-setup.sh (step "launcher", run with ANTIGEM_RUNTIME=chroot) as /usr/local/bin/rea-shell.
+T=/opt/antigem/tools
+export PATH="$T/node/bin:$PATH"
+export REA_JADX_MCP_JAR=$T/jadx-headless-mcp-0.7.1-all.jar REA_APKTOOL_COMMAND=/usr/local/bin/apktool \
+    REA_BINWALK_COMMAND=/usr/bin/binwalk REA_ADB_PATH=/usr/bin/adb
+rizin=$(command -v rizin 2>/dev/null) && export REA_RIZIN_COMMAND="$rizin"
+
+if [ $# -eq 0 ]; then
+    exec /bin/bash -i
+fi
+exec /bin/bash -c "$*"

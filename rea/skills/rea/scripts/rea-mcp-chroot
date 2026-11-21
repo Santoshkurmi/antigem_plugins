@@ -1,0 +1,43 @@
+#!/bin/bash
+# AntiGem · REA MCP server in AntiGem's Ubuntu chroot (rooted phones). REA runs right here, no container, and speaks
+# MCP over stdio, showing only the tools of the groups in REA_GROUPS. Same commands and settings as the Termux
+# launcher (rea-mcp):
+#
+#   rea-mcp               MCP server over stdio (the command agents start)
+#   rea-mcp --list-tools  print every REA tool as JSON
+#   rea-mcp --doctor      run `rea doctor` (which tools and engines are ready)
+#
+# Environment (set in the MCP server's env): REA_GROUPS, REA_MODE, REA_DIRECT_GROUPS, REA_MCP_OUTPUT_SCHEMA_PROFILE
+# (see rea-mcp). The tool groups are the user's own: ~/.config/antigem/rea/groups.json.
+#
+# Installed by rea-setup.sh (step "launcher", run with ANTIGEM_RUNTIME=chroot) as /usr/local/bin/rea-mcp.
+T=/opt/antigem/tools
+S=/opt/antigem/share/antigem-rea
+
+if [ ! -x "$T/node/bin/node" ] || [ ! -f "$S/rea-filter.mjs" ]; then
+    echo "rea-mcp: REA is not installed in this Ubuntu. Install it in AntiGem Settings → REA." >&2
+    exit 1
+fi
+
+H="${HOME:-$(getent passwd "$(id -un)" | cut -d: -f6)}"
+envs=(
+    "HOME=$H" TERM=dumb LANG=C.UTF-8
+    "PATH=$T/node/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    "REA_GROUPS=${REA_GROUPS:-all}"
+    "REA_MODE=${REA_MODE:-direct}"
+    "REA_DIRECT_GROUPS=${REA_DIRECT_GROUPS:-}"
+    "REA_GROUPS_FILE=$H/.config/antigem/rea/groups.json"
+    REA_JADX_MCP_JAR=$T/jadx-headless-mcp-0.7.1-all.jar
+    REA_APKTOOL_COMMAND=/usr/local/bin/apktool
+    REA_BINWALK_COMMAND=/usr/bin/binwalk
+    REA_ADB_PATH=/usr/bin/adb
+    "REA_MCP_OUTPUT_SCHEMA_PROFILE=${REA_MCP_OUTPUT_SCHEMA_PROFILE:-off}"
+)
+# rizin only when installed (Ubuntu 24.04 has no package for it)
+rizin=$(command -v rizin 2>/dev/null) && envs+=("REA_RIZIN_COMMAND=$rizin")
+# Optional REA settings pass through when set
+for v in REA_MCP_INPUT_SCHEMA_PROFILE REA_MCP_MAX_RESPONSE_BYTES REA_JADX_OPERATION_TIMEOUT_MS GHIDRA_INSTALL_DIR ANDROID_SERIAL; do
+    [ -n "${!v:-}" ] && envs+=("$v=${!v}")
+done
+
+exec /usr/bin/env -i "${envs[@]}" "$T/node/bin/node" "$S/rea-filter.mjs" "$@"

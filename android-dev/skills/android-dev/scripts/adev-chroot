@@ -1,0 +1,29 @@
+#!/bin/bash
+# AntiGem · run a command with the Android tools on PATH in AntiGem's Ubuntu chroot: java, sdkmanager, gradle
+# (through ./gradlew), flutter, dart, node, npm, npx, adb, fastboot. Everything already runs right here (no container);
+# this only sets JAVA_HOME, ANDROID_HOME and PATH.
+#
+#   adev                                 a shell with the tools
+#   adev './gradlew assembleDebug'       one command, run in the current folder
+#   adev flutter build apk --debug       the same, without quotes for simple commands
+#
+# Installed by android-setup.sh (step "launcher", run with ANTIGEM_RUNTIME=chroot) as /usr/local/bin/adev.
+T=/opt/antigem/tools
+SDK=/opt/antigem/android-sdk
+case "$(uname -m)" in x86_64) DEB_ARCH=amd64 ;; *) DEB_ARCH=arm64 ;; esac
+
+if [ ! -e "$SDK/cmdline-tools/latest/lib/sdkmanager-classpath.jar" ]; then
+    echo "adev: the Android SDK is not installed in this Ubuntu (AntiGem Settings → Android Development)." >&2
+    exit 1
+fi
+
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-$DEB_ARCH ANDROID_HOME=$SDK ANDROID_SDK_ROOT=$SDK
+export PATH="$T/adev-bin:$T/flutter/bin:$T/node/bin:$SDK/cmdline-tools/latest/bin:$SDK/platform-tools:$PATH"
+export FLUTTER_SUPPRESS_ANALYTICS=true NEXT_TELEMETRY_DISABLED=1
+# React Native's CLI and Gradle plugin: no Metro / packager terminal window to open
+export RCT_NO_LAUNCH_PACKAGER=1
+
+if [ $# -eq 0 ]; then
+    exec /bin/bash -i
+fi
+exec /bin/bash -c "$*"

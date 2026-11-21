@@ -1,5 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# AntiGem · create a new Android app project (a working hello world) in the Termux home.
+# AntiGem · create a new Android app project (a working hello world) in the Termux home (in AntiGem's Ubuntu
+# chroot: anywhere in your home).
 #
 #   adev-new compose <dir> [--package com.example.hello] [--name "Hello"] [--latest]   Kotlin + Jetpack Compose
 #   adev-new flutter <dir> [--package com.example.hello]                      Flutter (flutter create)
@@ -31,10 +32,19 @@ while [ $# -gt 0 ]; do
 done
 
 case "$dir" in /*) ;; *) dir="$PWD/$dir" ;; esac
-case "$dir" in
-    /data/data/com.termux/files/home/*|/data/user/0/com.termux/files/home/*) ;;
-    *) die "Create projects in the Termux home (~/...): Gradle, Flutter and npm need a real Linux file system, and the container sees only the home." ;;
-esac
+# In AntiGem's Ubuntu chroot Android's /data/data is not there (and this runs with Ubuntu's bash)
+IN_TERMUX=""
+[ -d /data/data/com.termux/files/home ] && IN_TERMUX=1
+if [ -n "$IN_TERMUX" ]; then
+    case "$dir" in
+        /data/data/com.termux/files/home/*|/data/user/0/com.termux/files/home/*) ;;
+        *) die "Create projects in the Termux home (~/...): Gradle, Flutter and npm need a real Linux file system, and the container sees only the home." ;;
+    esac
+else
+    case "$dir" in
+        /sdcard/*|/storage/*|/mnt/*) die "Create projects in your home (~/...): Gradle, Flutter and npm need a real Linux file system, not the phone's shared storage." ;;
+    esac
+fi
 [ -e "$dir" ] && [ -n "$(ls -A "$dir" 2>/dev/null)" ] && die "$dir already exists and is not empty"
 base="$(basename "$dir")"
 slug="$(printf '%s' "$base" | tr 'A-Z' 'a-z' | tr -c 'a-z0-9\n' '_' | sed 's/^_*//; s/_*$//; s/__*/_/g')"
@@ -66,7 +76,7 @@ android_runs() { # android_runs <build> <apk> [cwd] [more run_cmd entries…]  (
         "$(run_cmd "Build debug APK" "$build" "$cwd")"
         "$(run_cmd "Build, install & open" "$build && adb install -r $apk && $open" "$cwd")"
         "$(run_cmd "Install & open" "adb install -r $apk && $open" "$cwd")"
-        "$(run_cmd "Install with Android's installer" "termux-open $apk" "$cwd")"
+        ${IN_TERMUX:+"$(run_cmd "Install with Android's installer" "termux-open $apk" "$cwd")"}
         "$(run_cmd "App log (logcat)" "adb logcat --pid=\$(adb shell pidof -s $pkg)" "$cwd")"
         "$@"
     )
