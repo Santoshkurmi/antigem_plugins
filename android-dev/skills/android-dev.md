@@ -23,6 +23,11 @@ two commands:
 Edit the project files directly with your normal file tools (they are in the Termux home); only builds, `flutter`,
 `npm` and `npx` need `adev`.
 
+**In AntiGem's Ubuntu chroot** (rooted phones; you are in a normal Ubuntu, without `$PREFIX`): there is no
+container. The tools live in `/opt/antigem` and the same two commands (`/usr/local/bin/adev`, `adev-new`) run them
+right there, with Ubuntu's own `aapt2`, `adb` and `fastboot` (no sudo needed). Projects go in `~/AndroidProjects`
+(any folder of your home works, not /sdcard). `setup.md` has the details.
+
 **Builds are arm64-v8a only.** Apps built here are for this phone, so the setup makes every build package only
 arm64 native code: a Gradle init script sets `abiFilters` to `arm64-v8a` for every module, React Native gets
 `reactNativeArchitectures=arm64-v8a`, and `flutter build apk|appbundle` adds `--target-platform android-arm64`.

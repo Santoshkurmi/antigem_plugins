@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "id": "rea",
   "name": "REA · Reverse Engineering",
-  "version": "1.0.0",
-  "description": "Skill for REA (Reverse Engineer Anything, github.com/morluto/rea): install it in a proot-distro Ubuntu container, check that its MCP server works, and analyze APKs, installed apps, Flutter, React Native and native code. Also carries REA's setup scripts.",
+  "version": "1.1.0",
+  "description": "Skill for REA (Reverse Engineer Anything, github.com/morluto/rea): install it in a proot-distro Ubuntu container (or right in AntiGem's Ubuntu chroot on rooted phones), check that its MCP server works, and analyze APKs, installed apps, Flutter, React Native and native code. Also carries REA's setup scripts.",
   "icon": "icon.svg"
 }

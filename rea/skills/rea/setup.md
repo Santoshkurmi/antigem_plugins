@@ -7,6 +7,24 @@ buttons, one part at a time or several together, and adds the MCP server. Sugges
 If the user prefers, install from the terminal. **Ask before installing**: the APK-analysis set needs about 1 GB
 and takes 5–15 minutes depending on the network. Run long steps one at a time so a failure is easy to see.
 
+## In AntiGem's Ubuntu chroot (rooted phones)
+
+When the phone runs AntiGem's Ubuntu chroot, you are in a normal Ubuntu (no `$PREFIX`, no proot) and REA installs
+right into it: no container. The same script runs as root with `ANTIGEM_RUNTIME=chroot`; Settings → REA does this
+for the user, and copies the scripts to `/opt/antigem/share/antigem-rea`. From the terminal (it needs root, so ask
+the user first):
+
+```sh
+sudo env ANTIGEM_RUNTIME=chroot bash /opt/antigem/share/antigem-rea/rea-setup.sh android
+```
+
+Where things are there: tools in `/opt/antigem/tools` (Node.js, the JADX and apktool jars, hermes-dec), the
+commands `rea-mcp`, `rea-shell` and `apktool` in `/usr/local/bin`, the tool groups in the user's own
+`~/.config/antigem/rea/groups.json`. The `container` step does nothing there; `native` installs objdump and rizin
+(rizin from the rizin project's own Ubuntu repository: Ubuntu has no package), `adb` installs Ubuntu's adb and
+fastboot (they work without sudo). The MCP server command is `/usr/local/bin/rea-mcp`. Everything below about
+`$PREFIX` and proot-distro is for AntiGem's terminal (Termux) only.
+
 ## The setup script
 
 The script ships with this skill: `scripts/rea-setup.sh` in this skill's detail folder (`get_skill` returns

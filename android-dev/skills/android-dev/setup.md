@@ -1,5 +1,16 @@
 # Setting up Android development
 
+**AntiGem's Ubuntu chroot (rooted phones):** when the phone runs it, you are in a normal Ubuntu (no `$PREFIX`, no
+proot) and everything installs right into it, no container: the same script runs as root with
+`ANTIGEM_RUNTIME=chroot` (Settings → Android Development does it and copies the scripts to
+`/opt/antigem/share/antigem-android`; from the terminal, after asking the user:
+`sudo env ANTIGEM_RUNTIME=chroot bash /opt/antigem/share/antigem-android/android-setup.sh kotlin`). There: tools and
+the SDK in `/opt/antigem` (the SDK and Flutter belong to the user, so builds can write in them), `adev` and
+`adev-new` in `/usr/local/bin`, Gradle settings in the user's `~/.gradle`, projects in `~/AndroidProjects` (any
+folder of the home works, not /sdcard). Ubuntu's own arm64 `aapt2`, `adb`, `fastboot` (no sudo needed) and
+`qemu-user` replace Termux's. The `container` step does nothing there. The rest of this file describes AntiGem's
+terminal (Termux): the paths there (`$PREFIX`, `/root/...`) differ.
+
 Everything runs in the proot-distro Ubuntu 24.04 container named `ubuntu` inside AntiGem's terminal (com.termux
 builds only). REA uses the same container: Java 21 and Node.js installed for one are reused by the other.
 

@@ -196,16 +196,33 @@ chmod 755 /usr/local/bin/apktool
     ok "apktool installed"
 }
 
+# Ubuntu has no rizin package (24.04 has none): the rizin project builds its own Ubuntu packages on openSUSE's build
+# service (home:RizinOrg, xUbuntu_<version>, arm64 and amd64). Adds that repository, signed with its key.
+add_rizin_repo() {
+    local ver repo
+    ver=$(. /etc/os-release 2>/dev/null && echo "$VERSION_ID")
+    repo="https://download.opensuse.org/repositories/home:/RizinOrg/xUbuntu_$ver"
+    say "Ubuntu $ver has no rizin package: adding the rizin project's own repository ($repo)…"
+    command -v curl >/dev/null 2>&1 || ubuntu_install ca-certificates curl
+    mkdir -p /etc/apt/keyrings
+    curl -fsSL --retry 3 "$repo/Release.key" -o /etc/apt/keyrings/rizin.asc.part \
+        || die "The rizin project has no packages for Ubuntu $ver ($repo)"
+    mv -f /etc/apt/keyrings/rizin.asc.part /etc/apt/keyrings/rizin.asc
+    chmod 644 /etc/apt/keyrings/rizin.asc
+    echo "deb [signed-by=/etc/apt/keyrings/rizin.asc] $repo/ /" > /etc/apt/sources.list.d/rizin.list
+    IN_UPDATED=""   # the next install reads the new repository's package list
+}
+
 step_native() {
     if [ "$RUNTIME" = chroot ]; then
-        say "Installing native code tools: objdump (binutils) and rizin when this Ubuntu has it…"
+        say "Installing native code tools: objdump (binutils) and rizin…"
         ubuntu_install binutils
-        if apt-cache show rizin >/dev/null 2>&1; then
+        if ! command -v rizin >/dev/null 2>&1; then
+            apt-cache show rizin >/dev/null 2>&1 || add_rizin_repo
             ubuntu_install rizin
-            ok "objdump and rizin installed"
-        else
-            ok "objdump installed. This Ubuntu has no rizin package (Ubuntu 24.04 has none), so REA's rizin tools stay off; install rizin yourself (github.com/rizinorg/rizin) and REA finds it on PATH."
         fi
+        rizin -v >/dev/null 2>&1 || die "rizin was installed but does not run"
+        ok "objdump and rizin installed ($(rizin -v 2>/dev/null | head -1))"
         return 0
     fi
     say "Installing native code tools: objdump (Ubuntu binutils) and rizin (Termux)…"
@@ -320,9 +337,7 @@ step_status() {
     echo "apktool=$(installed "$ROOTFS$T/apktool.jar")"
     echo "launcher=$(installed "$BIN/rea-mcp")"
     if [ "$RUNTIME" = chroot ]; then
-        # Ubuntu has no rizin package to install with it: objdump alone counts, rizin is reported on its own
-        echo "native=$(installed /usr/bin/objdump)"
-        echo "rizin=$(command -v rizin >/dev/null 2>&1 && echo yes || echo no)"
+        echo "native=$( [ -e /usr/bin/objdump ] && command -v rizin >/dev/null 2>&1 && echo yes || echo no)"
         echo "adb=$( [ -e /usr/bin/adb ] && [ -e /usr/bin/fastboot ] && echo yes || echo no)"
     else
         echo "native=$( [ -e "$ROOTFS/usr/bin/objdump" ] && [ -e "$P/bin/rizin" ] && echo yes || echo no)"
@@ -381,7 +396,7 @@ Steps (each can be rerun to repair or update)
   rea         REA itself (npm rea-agents); rerun to update
   jadx        jadx-headless-mcp $JADX_VERSION jar: Java/Kotlin decompiling of APKs
   apktool     latest apktool jar: manifest, resources and strings
-  native      objdump (Ubuntu) and rizin (Termux; in the chroot only if Ubuntu packages it) for .so libraries
+  native      objdump (Ubuntu) and rizin (Termux's; in the chroot the rizin project's Ubuntu package) for .so libraries
   launcher    rea-mcp (the MCP server command), rea-shell and the tool filter
   adb         adb in Termux (in the chroot: Ubuntu's adb and fastboot), for REA's device tools
   hermes      hermes-dec for React Native Hermes bytecode

@@ -33,7 +33,7 @@ envs=(
     REA_ADB_PATH=/usr/bin/adb
     "REA_MCP_OUTPUT_SCHEMA_PROFILE=${REA_MCP_OUTPUT_SCHEMA_PROFILE:-off}"
 )
-# rizin only when installed (Ubuntu 24.04 has no package for it)
+# rizin when installed (the setup's native step installs it)
 rizin=$(command -v rizin 2>/dev/null) && envs+=("REA_RIZIN_COMMAND=$rizin")
 # Optional REA settings pass through when set
 for v in REA_MCP_INPUT_SCHEMA_PROFILE REA_MCP_MAX_RESPONSE_BYTES REA_JADX_OPERATION_TIMEOUT_MS GHIDRA_INSTALL_DIR ANDROID_SERIAL; do
